@@ -1,3 +1,4 @@
 ﻿api/.gradle
 api/build
 api/.idea
+api/src/main/kotlin/de/universegame/cmm/gitIgnoreConfig.kt

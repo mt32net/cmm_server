@@ -1,4 +1,4 @@
-package de.universegame.cmm.apihandler.modules.modulehandler
+package de.universegame.cmm.apirouter.modules.modulerouter
 
 import de.universegame.cmm.CMMInfoJackson.auto
 import de.universegame.cmm.modules.notifications.NotificationsList

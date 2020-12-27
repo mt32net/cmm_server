@@ -1,4 +1,4 @@
-package de.universegame.cmm.apihandler.modules.modulehandler
+package de.universegame.cmm.apirouter.modules.modulerouter
 
 import de.universegame.cmm.modules.monitor.updateMonitor
 import org.http4k.core.Method

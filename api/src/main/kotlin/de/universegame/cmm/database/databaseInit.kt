@@ -15,7 +15,7 @@ fun initialize() {
 
     transaction {
         //addLogger(StdOutSqlLogger)
-        SchemaUtils.create(cmmInfoTable, usersTable, devicesTable, installedModulesTable)
+        SchemaUtils.create(cmmInfoTable, usersTable, devicesTable, installedModulesTable, loginSecretsTable, sessionsTable)
 
         updateCMMInfoTable()
         initModuleTables()

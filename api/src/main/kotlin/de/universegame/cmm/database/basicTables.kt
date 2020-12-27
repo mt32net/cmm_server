@@ -1,6 +1,7 @@
 package de.universegame.cmm.database
 
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.`java-time`.datetime
 
 object cmmInfoTable : Table() {
     val key = varchar("key", 50)
@@ -14,8 +15,9 @@ object usersTable : Table(){
     val mail = varchar("mail", config.userMailMaxLength)
     val uuid = varchar("uuid", config.UUIDLength)
     val verified = bool("verified")
+    val pwd = varchar("pwd", 200)
     
-    override val primaryKey = PrimaryKey(username)
+    override val primaryKey = PrimaryKey(uuid)
 }
 
 object devicesTable : Table() {
@@ -36,4 +38,17 @@ object installedModulesTable : Table() {
     val version = varchar("installedVersion", config.versionMaxLength)
 
     override val primaryKey = PrimaryKey(uuid, module)
+}
+
+object loginSecretsTable: Table(){
+    val userUUID = varchar("user", config.UUIDLength)
+    val secret = varchar("secret", config.UUIDLength)
+    val created = datetime("created")
+}
+
+object sessionsTable: Table(){
+    val uuid = varchar("uuid", config.UUIDLength)
+    val sessionID = varchar("sessionID", config.UUIDLength)
+    val created = datetime("created")
+    val expiration = datetime("expiration")
 }

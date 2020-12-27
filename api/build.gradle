@@ -22,6 +22,10 @@ dependencies {
     implementation "org.jetbrains.exposed:exposed-jdbc:$exposed_version"
     implementation "org.jetbrains.exposed:exposed-java-time:$exposed_version"
     compile("mysql:mysql-connector-java:5.1.48")
+    implementation "org.apache.commons:commons-email:1.5"
+    compile 'io.jsonwebtoken:jjwt-api:0.11.2'
+    runtime 'io.jsonwebtoken:jjwt-impl:0.11.2',
+            'io.jsonwebtoken:jjwt-jackson:0.11.2'
 }
 
 compileKotlin {

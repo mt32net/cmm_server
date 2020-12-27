@@ -42,7 +42,7 @@ data class CMMLengthProperties(
     val clientNameMaxLength: Int = config.clientNameMaxLength,
     val userNameMaxLength : Int = config.userNameMaxLength,
     val userMailMaxLength: Int = config.userMailMaxLength,
-    val macLengthh: Int = config.macLength,
+    val macLength: Int = config.macLength,
     val maxProcessNameLength: Int = config.maxProcessNameLenght,
     val versionMaxLength: Int = config.versionMaxLength
 )
