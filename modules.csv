@@ -1,0 +1,4 @@
+server, https://github.com/computer-micro-mangangement/cmm_server, 0.1
+hub, https://github.com/computer-micro-mangangement/cmm_hub, 0.0
+notifier, https://github.com/computer-micro-mangangement/cmm_notifier, 0.0
+monitor, https://github.com/computer-micro-mangangement/cmm_monitor, 0.0
