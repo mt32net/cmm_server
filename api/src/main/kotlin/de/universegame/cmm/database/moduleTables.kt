@@ -12,21 +12,30 @@ fun initModuleTables() {
 }
 
 object notificationsTable : Table() {
-    val recieverUUID = varchar("revieverUUID", clientUUIDLength)
+    val recieverUUID = varchar("revieverUUID", config.UUIDLength)
     val sender = varchar("sender", 200)
     val iconType = varchar("iconType", 20)
     val iconData = varchar("iconData", 1000)
     val message = varchar("message", 300)
-    val sendTime = datetime("sendTime")
+    val sendDateTime = datetime("sendDateTime")
 
-    override val primaryKey = PrimaryKey(recieverUUID, sender, sendTime, message)
+    override val primaryKey = PrimaryKey(recieverUUID, sender, sendDateTime, message)
 }
 
 object monitorTable : Table() {
-    val uuid = varchar("uuid", clientUUIDLength)
+    val uuid = varchar("uuid", config.UUIDLength)
+    val recDateTime = datetime("sendDateTime")
     val cpuUsagePercent = double("cpuUsage")
     val ramUsage = double("ramUsage")
     val installedRam = integer("installedRam")
+
+    val processNameMostCPUUsage = varchar("processNameMostCPUUsage", config.maxProcessNameLenght)
+    val processMostCPUUsage = double("processMostCPUUsage")
+    val processNameMostRAMUsage = varchar("processNameMostRAMUsage", config.maxProcessNameLenght)
+    val processMostRAMUsage = double("processMostRAMUsage")
+
     val networkUploadKbs = double("networkUploadKbs")
     val networkDownloadKbs = double("networkDownloadKbs")
+
+    override val primaryKey = PrimaryKey(uuid, recDateTime)
 }

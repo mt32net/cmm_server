@@ -1,6 +1,6 @@
 package de.universegame.cmm
 
-enum class modules {
+enum class avialableModules {
     info,
     devicelist,
     deviceInfo,

@@ -1,9 +1,26 @@
-package de.universegame.cmm
+package de.universegame.cmm.modules.notifications
 
 import de.universegame.cmm.database.notificationsTable
+import de.universegame.cmm.dateTimeFormatter
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
+
+data class NotificationsList(val notifications: List<Notification>)
+
+data class Notification(
+    val recieverUUID: String,
+    val sender: String,
+    val iconType: IconType,
+    val iconData: String,
+    val message: String,
+    val sendDateTime: String
+)
+
+enum class IconType {
+    base64Encoded,
+    url
+}
 
 fun getJSONCMMNotificationList(recieverUUID: String): NotificationsList {
     var notifications = mutableListOf<Notification>()
@@ -22,6 +39,6 @@ private fun getJSONCMMNotification(it: ResultRow): Notification {
         iconType = IconType.valueOf(it[notificationsTable.iconType]),
         iconData = it[notificationsTable.iconData],
         message = it[notificationsTable.message],
-        sendTime = it[notificationsTable.sendTime].format(dateTimeFormatter)
+        sendDateTime = it[notificationsTable.sendDateTime].format(dateTimeFormatter)
     )
 }

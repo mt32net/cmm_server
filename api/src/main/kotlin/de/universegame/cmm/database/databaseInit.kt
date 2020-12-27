@@ -1,32 +1,24 @@
 package de.universegame.cmm.database
 
-import de.universegame.cmm.*
-import org.jetbrains.exposed.sql.*
+import de.universegame.cmm.cmmMinClientModuleVersions
+import de.universegame.cmm.cmmModuleListURL
+import de.universegame.cmm.cmmServerVersion
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 
 
 var database: Database? = null
 
 fun initialize() {
-    database = Database.connect(mysqlUrl, driver = "com.mysql.jdbc.Driver", user = mysqlUser, password = mysqlPwd)
+    database = Database.connect(config.mysqlUrl, driver = "com.mysql.jdbc.Driver", user = config.mysqlUser, password = config.mysqlPwd)
 
     transaction {
         //addLogger(StdOutSqlLogger)
-        SchemaUtils.create(cmmInfoTable, commandListTable, devicesTable, installedModulesTable)
+        SchemaUtils.create(cmmInfoTable, usersTable, devicesTable, installedModulesTable)
 
         updateCMMInfoTable()
         initModuleTables()
-
-        //update new commands
-        commands.values().forEach {
-            val enum: commands = it
-            if (commandListTable.select { commandListTable.command eq it.name }.count() == 0L)
-                commandListTable.insert {
-                    it[command] = enum.name
-                    it[method] = enum.method
-                    it[enabled] = true
-                }
-        }
     }
 }
 

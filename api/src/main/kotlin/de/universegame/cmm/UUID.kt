@@ -1,6 +1,6 @@
 package de.universegame.cmm
 
-import de.universegame.cmm.database.clientSecretLength
+import de.universegame.cmm.database.*
 import kotlin.random.Random
 import kotlin.random.nextInt
 
@@ -23,5 +23,5 @@ fun generateUUID(length: Int, separateAfter: Int): String {
 }
 
 fun generateClientSecret(): String {
-    return generateUUID(clientSecretLength, clientSecretLength)
+    return generateUUID(config.clientSecretLength, config.clientSecretLength)
 }
