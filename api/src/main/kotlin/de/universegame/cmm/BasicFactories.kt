@@ -66,8 +66,8 @@ private fun getJSONCMMDevice(it: ResultRow): CMMDevice {
     )
 }
 
-fun getJSONCMMDevice(uuid: String): CMMDevice? {
-    var device: CMMDevice? = null
+fun getJSONCMMDevice(uuid: String): CMMDevice {
+    var device: CMMDevice = CMMDevice("", "", false, "", listOf())
     transaction {
         device = getJSONCMMDevice(devicesTable.select { devicesTable.uuid eq uuid }.single())
     }

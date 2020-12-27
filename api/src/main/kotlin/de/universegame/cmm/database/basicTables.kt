@@ -31,7 +31,7 @@ object devicesTable : Table() {
 object installedModulesTable : Table() {
     val uuid = varchar("uuid", clientUUIDLength)
     val module = varchar("module", 100)
-    val version = varchar("installedVersion", 50)
+    val version = varchar("installedVersion", versionLength)
 
     override val primaryKey = PrimaryKey(uuid, module)
 }

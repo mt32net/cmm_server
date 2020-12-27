@@ -29,5 +29,4 @@ object monitorTable : Table() {
     val installedRam = integer("installedRam")
     val networkUploadKbs = double("networkUploadKbs")
     val networkDownloadKbs = double("networkDownloadKbs")
-
 }

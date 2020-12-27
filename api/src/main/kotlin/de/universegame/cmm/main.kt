@@ -35,6 +35,11 @@ var apiRoutes =
     routes(
         "/info" bind GET to { Response(OK).with(Body.auto<CMMInfo>().toLens() of getJSONCMMInfo()) },
         "/devicelist" bind GET to { Response(OK).with(Body.auto<CMMDeviceList>().toLens() of getJSONCMMDeviceList()) },
+        "/deviceinfo/" bind GET to { request: Request ->
+            Response(OK).with(
+                Body.auto<CMMDevice>().toLens() of getJSONCMMDevice(request.query("uuid") ?: "")
+            )
+        },
         "/notifications/" bind GET to { request: Request ->
             Response(OK).with(
                 Body.auto<NotificationsList>().toLens() of getJSONCMMNotificationList(
@@ -55,9 +60,21 @@ var apiRoutes =
         "/deviceInfo/" bind POST to { request: Request ->
             Response(
                 updateDeviceInfo(
-                    request.query("uuid"),
-                    request.query("name"),
-                    request.query("online").toBoolean()
+                    uuid = request.query("uuid"),
+                    name = request.query("name"),
+                    online = request.query("online").toBoolean()
+                )
+            )
+        },
+        "/monitor/" bind POST to { request: Request ->
+            Response(
+                updateMonitor(
+                    uuid = request.query("uuid"),
+                    cpuUsage = request.query("cpuUsage"),
+                    ramUsage = request.query("ramUsage"),
+                    installedRam = request.query("installedRam"),
+                    networkUploadKbs = request.query("upload"),
+                    networkDownloadKbs = request.query("download")
                 )
             )
         }

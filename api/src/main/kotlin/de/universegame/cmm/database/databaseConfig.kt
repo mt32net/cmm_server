@@ -7,3 +7,5 @@ val mysqlUrl: String = "jdbc:mysql://localhost:3306/cmm?autoReconnect=true&useSS
 val clientUUIDLength = 200
 var clientSecretLength = 500
 val clientNameLength = 200
+
+val versionLength = 50
