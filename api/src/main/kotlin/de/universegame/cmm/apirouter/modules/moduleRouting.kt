@@ -6,6 +6,6 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 var moduleRoutes = routes(
-    "/monitor/" bind monitorResponse,
-    "/notifications/" bind notificationsResponse
+    "/monitor" bind monitorResponse,
+    "/notifications" bind notificationsResponse
 )

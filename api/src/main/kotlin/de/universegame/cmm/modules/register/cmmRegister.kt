@@ -1,12 +1,11 @@
 package de.universegame.cmm.modules.register
 
+import de.universegame.cmm.*
 import de.universegame.cmm.CMMInfoJackson.auto
 import de.universegame.cmm.database.config
 import de.universegame.cmm.database.devicesTable
 import de.universegame.cmm.database.loginSecretsTable
-import de.universegame.cmm.generateClientSecret
-import de.universegame.cmm.generateUUID
-import de.universegame.cmm.inDatabaseNotFound
+import de.universegame.cmm.database.usersTable
 import org.http4k.core.*
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -22,7 +21,7 @@ fun registerDevice(name: String, mac: String, loginSecret: String): CMMDeviceReg
     }
     if (cancel)
         return CMMDeviceRegistered("", "")
-    var uuid = generateUUID(config.UUIDLength, 10)
+    var uuid = createLoginSecret()
     var clientsecret = generateClientSecret()
 
     transaction {
@@ -43,15 +42,32 @@ fun registerDevice(name: String, mac: String, loginSecret: String): CMMDeviceReg
     return CMMDeviceRegistered(uuid = uuid, clientSecret = clientsecret)
 }
 
-fun registerDevice(request: Request): Response {
-    var name = request.query("name") ?: return Response(inDatabaseNotFound)
-    var mac = request.query("mac") ?: return Response(inDatabaseNotFound)
-    var loginSecret = request.query("loginSecret") ?: return Response(inDatabaseNotFound)
-    return Response(Status.CREATED).with(
-        Body.auto<CMMDeviceRegistered>().toLens() of registerDevice(
-            name = name,
-            mac = mac,
-            loginSecret = loginSecret
-        )
+fun registerDeviceResponse(request: Request): Response {
+    var name = request.query("name") ?: return Response(missingQuery)
+    var mac = request.query("mac") ?: return Response(missingQuery)
+    var loginSecret = request.query("loginSecret") ?: return Response(missingQuery)
+    var device = registerDevice(
+        name = name,
+        mac = mac,
+        loginSecret = loginSecret
     )
+    return if (!device.uuid.isEmpty()) Response(Status.CREATED).with(
+        Body.auto<CMMDeviceRegistered>().toLens() of device
+    ) else Response(
+        inDatabaseNotFound
+    )
+}
+
+fun requestRegisterDeviceResponse(request: Request): Response {
+    var uuid = request.query("uuid")?:return Response(missingQuery)
+    var loginSecret = createLoginSecret()
+    var mail = ""
+    transaction {
+        mail = usersTable.select{usersTable.uuid eq uuid}.single()[usersTable.mail]
+    }
+    if(mail!= "") {
+        sendEMail(mailConfig.mailFrom, mail, "CMM new device login secret", "here ist your login secret: $loginSecret")
+        return Response(Status.OK)
+    }
+    else return Response(inDatabaseNotFound)
 }

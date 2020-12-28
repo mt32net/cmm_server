@@ -1,13 +1,13 @@
 package de.universegame.cmm.modules.userInfo
 
 import de.universegame.cmm.*
+import de.universegame.cmm.CMMInfoJackson.auto
 import de.universegame.cmm.database.config
 import de.universegame.cmm.database.loginSecretsTable
 import de.universegame.cmm.database.sessionsTable
 import de.universegame.cmm.database.usersTable
-import org.http4k.core.Request
-import org.http4k.core.Response
-import org.http4k.core.Status
+import de.universegame.cmm.modules.forgottenUUID.CMMForgottenUUID
+import org.http4k.core.*
 import org.http4k.core.Status.Companion.OK
 import org.http4k.core.cookie.Cookie
 import org.http4k.core.cookie.cookie
@@ -70,7 +70,7 @@ fun createUserResponse(request: Request): Response {
         mailConfig.mailFrom, mail, "CMM Verification",
         "Click link to verify: $serverPrefix://$serverAdress:$serverPort/api/user/verify?loginSecret=$loginSecret"
     )
-    return Response(Status.CREATED).body("User created, view your emails to verify and login")
+    return Response(Status.CREATED).body("User created, check your emails to verify and login")
 }
 
 fun verfiyUserResponse(request: Request): Response {
@@ -121,4 +121,20 @@ fun loginUserResponse(request: Request): Response {
         return Response(code).body(errorString)
     else
         return Response(code).cookie(Cookie("cmmJWT", generateJWT(userUUID, username, mail, sessionToken)))
+}
+
+fun getUUIDResponse(request: Request): Response{
+    var username = request.query("username")?:return Response(missingQuery)
+    var uuidString = ""
+    transaction {
+        uuidString = usersTable.select{usersTable.username eq username}.single()[usersTable.uuid]
+    }
+    var uuid = CMMForgottenUUID(uuidString)
+    if(uuidString.isEmpty())
+        return Response(inDatabaseNotFound)
+    else
+    return Response(Status.OK).with(
+        Body.auto<CMMForgottenUUID>()
+            .toLens() of uuid
+    )
 }
