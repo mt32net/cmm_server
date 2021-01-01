@@ -11,7 +11,7 @@ path | HTTP type | description | example return body
 --- | --- | --- | ---
 `/api/info` | GET | a brief summary of all important information for the clients  consisting of version, type (Kotlin, HTTP-only), supported commands  | ```{ "version":"1.0", "type":"kotlin", "cmds":["info", "devicelist"]}```
 **/api/user** | | | 
-`/api/user/register?username=<value>&mail=<value>&pwd=<password>` | GET | to create a new user, this temporarily unsafe method is used. A e-mail will be send to `mail` to verify the new user | `User created, check your emails to verify and login`
+`/api/user/register?username=<value>&mail=<value>&pwd=<password>` | POST | to create a new user, this temporarily unsafe method is used. A e-mail will be send to `mail` to verify the new user | `User created, check your emails to verify and login`
 `/api/user/verify?loginSecret=<value>` | GET | a link to this URL will be sent via mail to a new user | `User $username was successfully verified, continue to login`
 `/api/user/login?username=<value>&pwd=<value>` | GET | to login this method is currently used, a cookie will be set as a response. In this cookie is stored: your mail, username and a session token, which is valid for the next 30 days | *no body returned* or an error string
 `/api/user/uuid?username=<value>` | GET | returns the `uuid` for the user with `username` | `{"uuid":"your uuid will be here"}`

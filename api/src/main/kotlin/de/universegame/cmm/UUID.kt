@@ -1,6 +1,5 @@
 package de.universegame.cmm
 
-import de.universegame.cmm.database.config
 import kotlin.random.Random
 import kotlin.random.nextInt
 
@@ -17,13 +16,13 @@ fun generateUUID(length: Int, separateAfter: Int): String {
 }
 
 fun generateClientSecret(): String {
-    return generateUUID(config.clientSecretLength, config.clientSecretLength)
+    return generateUUID(config.dbConfig.clientSecretLength, config.dbConfig.clientSecretLength)
 }
 
 fun createSessionToken(): String {
-    return generateUUID(config.UUIDLength, config.UUIDLength)
+    return generateUUID(config.dbConfig.UUIDLength, config.dbConfig.UUIDLength)
 }
 
 fun createLoginSecret(): String {
-    return generateUUID(config.UUIDLength, 10)
+    return generateUUID(config.dbConfig.UUIDLength, 10)
 }

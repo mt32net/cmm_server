@@ -2,11 +2,12 @@ package de.universegame.cmm.modules.deviceInfo
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import de.universegame.cmm.CMMInfoJackson.auto
+import de.universegame.cmm.config
 import de.universegame.cmm.database.devicesTable
 import de.universegame.cmm.database.installedModulesTable
 import de.universegame.cmm.generateClientSecret
-import de.universegame.cmm.inDatabaseNotFound
 import de.universegame.cmm.modules.CMMModule
+import de.universegame.cmm.toStatus
 import org.http4k.core.*
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.select
@@ -96,7 +97,7 @@ fun getJSONCMMDevice(uuid: String): CMMDevice {
 }
 
 fun getJSONCMMDeviceResponse(request: Request):Response{
-    var uuid: String = request.query("uuid") ?: return Response(inDatabaseNotFound)
+    var uuid: String = request.query("uuid") ?: return Response(config.httpResponses.inDatabaseNotFound.toStatus())
     return Response(Status.OK).with(
         Body.auto<CMMDevice>().toLens() of getJSONCMMDevice(uuid)
     )
@@ -104,10 +105,10 @@ fun getJSONCMMDeviceResponse(request: Request):Response{
 
 fun updateDeviceInfo(uuid: String?, name: String?, online: Boolean): Status {
     var status: Status = Status.OK
-    if (uuid == null) return inDatabaseNotFound
+    if (uuid == null) return config.httpResponses.inDatabaseNotFound.toStatus()
     transaction {
         if (devicesTable.select { devicesTable.uuid eq uuid }.count() == 0L) {
-            status = inDatabaseNotFound
+            status = config.httpResponses.inDatabaseNotFound.toStatus()
         } else {
             devicesTable.update({ devicesTable.uuid eq uuid }) {
                 if (name != null) it[devicesTable.name] = name

@@ -1,5 +1,6 @@
 package de.universegame.cmm.database
 
+import de.universegame.cmm.config
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.`java-time`.datetime
@@ -12,7 +13,7 @@ fun initModuleTables() {
 }
 
 object notificationsTable : Table() {
-    val recieverUUID = varchar("revieverUUID", config.UUIDLength)
+    val recieverUUID = varchar("revieverUUID", config.dbConfig.UUIDLength)
     val sender = varchar("sender", 200)
     val iconType = varchar("iconType", 20)
     val iconData = varchar("iconData", 1000)
@@ -23,15 +24,15 @@ object notificationsTable : Table() {
 }
 
 object monitorTable : Table() {
-    val uuid = varchar("uuid", config.UUIDLength)
+    val uuid = varchar("uuid", config.dbConfig.UUIDLength)
     val recDateTime = datetime("sendDateTime")
     val cpuUsagePercent = double("cpuUsage")
     val ramUsage = double("ramUsage")
     val installedRam = integer("installedRam")
 
-    val processNameMostCPUUsage = varchar("processNameMostCPUUsage", config.maxProcessNameLenght)
+    val processNameMostCPUUsage = varchar("processNameMostCPUUsage", config.dbConfig.maxProcessNameLenght)
     val processMostCPUUsage = double("processMostCPUUsage")
-    val processNameMostRAMUsage = varchar("processNameMostRAMUsage", config.maxProcessNameLenght)
+    val processNameMostRAMUsage = varchar("processNameMostRAMUsage", config.dbConfig.maxProcessNameLenght)
     val processMostRAMUsage = double("processMostRAMUsage")
 
     val networkUploadKbs = double("networkUploadKbs")

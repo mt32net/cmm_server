@@ -7,12 +7,12 @@ import java.sql.Date
 import java.time.LocalDate
 
 
-var key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretJWTString))
+var key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(config.secretJWTString))
 
 fun generateJWT(uuid: String, username: String, mail: String, sessionToken: String): String{
     var builder = Jwts.builder()
     builder.setSubject("CMM")
-    builder.setExpiration(Date.valueOf(LocalDate.now().plusDays(cookieExpirationInDays)))
+    builder.setExpiration(Date.valueOf(LocalDate.now().plusDays(config.cookieExpirationInDays)))
         .setId(sessionToken)
         .claim("uuid", uuid)
         .claim("username", username)

@@ -2,7 +2,6 @@ package de.universegame.cmm.modules.userInfo
 
 import de.universegame.cmm.*
 import de.universegame.cmm.CMMInfoJackson.auto
-import de.universegame.cmm.database.config
 import de.universegame.cmm.database.loginSecretsTable
 import de.universegame.cmm.database.sessionsTable
 import de.universegame.cmm.database.usersTable
@@ -30,7 +29,7 @@ class CMMUser {
 
     constructor(uuid: String) {
         transaction {
-            var it = usersTable.select { usersTable.uuid eq uuid }.single()
+            val it = usersTable.select { usersTable.uuid eq uuid }.single()
             username = it[usersTable.username]
             mail = it[usersTable.mail]
             verified = it[usersTable.verified]
@@ -47,11 +46,11 @@ fun getJSONCMMUser(uuid: String): CMMUser {
 }
 
 fun createUserResponse(request: Request): Response {
-    var username = request.query("username") ?: return Response(missingQuery)
-    var mail = request.query("mail") ?: return Response(missingQuery)
-    var pwd = request.query("pwd") ?: return Response(missingQuery)
-    var uuid = generateUUID(config.UUIDLength, 5)
-    var loginSecret = generateUUID(10, 11)
+    val username = request.query("username") ?: return Response(config.httpResponses.missingQuery.toStatus())
+    val mail = request.query("mail") ?: return Response(config.httpResponses.missingQuery.toStatus())
+    val pwd = request.query("pwd") ?: return Response(config.httpResponses.missingQuery.toStatus())
+    val uuid = generateUUID(config.dbConfig.UUIDLength, 5)
+    val loginSecret = generateUUID(10, 11)
     transaction {
         usersTable.insert {
             it[usersTable.username] = username
@@ -67,21 +66,22 @@ fun createUserResponse(request: Request): Response {
         }
     }
     sendEMail(
-        mailConfig.mailFrom, mail, "CMM Verification",
-        "Click link to verify: $serverPrefix://$serverAdress:$serverPort/api/user/verify?loginSecret=$loginSecret"
+        config.mailConfig.mailFrom, mail, "CMM Verification",
+        "Click link to verify: ${config.serverConfig.serverPrefix}://${config.serverConfig.serverAdress}/#/login?verify=$loginSecret \n " +
+                "If the server is not running, access the api directly: ${config.serverConfig.serverPrefix}://${config.serverConfig.serverAdress}/api/user/verify?loginSecret=$loginSecret"
     )
     return Response(Status.CREATED).body("User created, check your emails to verify and login")
 }
 
 fun verfiyUserResponse(request: Request): Response {
-    var loginSecret = request.query("loginSecret") ?: return Response(missingQuery)
+    val loginSecret = request.query("loginSecret") ?: return Response(config.httpResponses.missingQuery.toStatus())
     var updated = false
     var username = ""
     transaction {
         var query = loginSecretsTable.select { loginSecretsTable.secret eq loginSecret }
         if (query.count() != 0L) {
             var userUUID = query.single()[loginSecretsTable.userUUID]
-            username = usersTable.select({ usersTable.uuid eq userUUID }).single()[usersTable.username]
+            username = usersTable.select { usersTable.uuid eq userUUID }.single()[usersTable.username]
             loginSecretsTable.deleteWhere { loginSecretsTable.secret eq loginSecret }
             usersTable.update({ usersTable.uuid eq userUUID }) {
                 it[usersTable.verified] = true
@@ -89,12 +89,14 @@ fun verfiyUserResponse(request: Request): Response {
             updated = true
         }
     }
-    return Response(if (updated) OK else Status.PRECONDITION_FAILED).body("User $username was successfully verified, continue to login")
+    return if(updated)
+        Response(OK).body("User $username was successfully verified, continue to login")
+    else Response(Status.PRECONDITION_FAILED).body("loginsecret nonexistent")
 }
 
 fun loginUserResponse(request: Request): Response {
-    var username = request.query("username") ?: return Response(missingQuery)
-    var pwd = request.query("pwd") ?: return Response(missingQuery)
+    val username = request.query("username") ?: return Response(config.httpResponses.missingQuery.toStatus())
+    val pwd = request.query("pwd") ?: return Response(config.httpResponses.missingQuery.toStatus())
     var code = OK
     var errorString = ""
     var sessionToken = ""
@@ -111,30 +113,37 @@ fun loginUserResponse(request: Request): Response {
                     it[uuid] = userUUID
                     it[sessionID] = sessionToken
                     it[created] = LocalDateTime.now()
-                    it[expiration] = LocalDateTime.now().plusDays(cookieExpirationInDays)
+                    it[expiration] = LocalDateTime.now().plusDays(config.cookieExpirationInDays)
                 }
-            } else code = Status.UNAUTHORIZED
+            } else {
+                code = Status.UNAUTHORIZED
+                errorString = "username or password wrong"
+            }
             sessionsTable.deleteWhere { sessionsTable.uuid eq userUUID and (sessionsTable.expiration less LocalDateTime.now()) }
-        } else code = inDatabaseNotFound
+        } else {
+            code = config.httpResponses.inDatabaseNotFound.toStatus()
+            errorString = "nonexistent user"
+        }
     }
-    if (code != OK)
-        return Response(code).body(errorString)
+    return if (code != OK)
+        Response(code).body(errorString)
     else
-        return Response(code).cookie(Cookie("cmmJWT", generateJWT(userUUID, username, mail, sessionToken)))
+        Response(code).cookie(Cookie("cmmJWT", generateJWT(userUUID, username, mail, sessionToken), path = "/"))
+            .body("User logged in, cookie was set")
 }
 
-fun getUUIDResponse(request: Request): Response{
-    var username = request.query("username")?:return Response(missingQuery)
+fun getUUIDResponse(request: Request): Response {
+    var username = request.query("username") ?: return Response(config.httpResponses.missingQuery.toStatus())
     var uuidString = ""
     transaction {
-        uuidString = usersTable.select{usersTable.username eq username}.single()[usersTable.uuid]
+        uuidString = usersTable.select { usersTable.username eq username }.single()[usersTable.uuid]
     }
     var uuid = CMMForgottenUUID(uuidString)
-    if(uuidString.isEmpty())
-        return Response(inDatabaseNotFound)
+    if (uuidString.isEmpty())
+        return Response(config.httpResponses.inDatabaseNotFound.toStatus()).body("username not found")
     else
-    return Response(Status.OK).with(
-        Body.auto<CMMForgottenUUID>()
-            .toLens() of uuid
-    )
+        return Response(Status.OK).with(
+            Body.auto<CMMForgottenUUID>()
+                .toLens() of uuid
+        )
 }

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import de.universegame.cmm.CMMInfoJackson.auto
 import de.universegame.cmm.apirouter.apiRoutes
-import de.universegame.cmm.database.initialize
+import de.universegame.cmm.database.initializeDB
 import org.http4k.core.*
 import org.http4k.format.ConfigurableJackson
 import org.http4k.format.asConfigurable
@@ -32,10 +32,10 @@ fun main() {
             )
         }
     )
+    loadConfig("./config.json")
+    initializeDB()
 
-    initialize()
-
-    val server = handler.asServer(Netty(serverPort)).start()
+    val server = handler.asServer(Netty(config.serverConfig.serverPort)).start()
 
     while (readLine() != "e");
     server.stop()

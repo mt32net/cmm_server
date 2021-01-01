@@ -2,7 +2,6 @@ package de.universegame.cmm.modules.register
 
 import de.universegame.cmm.*
 import de.universegame.cmm.CMMInfoJackson.auto
-import de.universegame.cmm.database.config
 import de.universegame.cmm.database.devicesTable
 import de.universegame.cmm.database.loginSecretsTable
 import de.universegame.cmm.database.usersTable
@@ -26,7 +25,7 @@ fun registerDevice(name: String, mac: String, loginSecret: String): CMMDeviceReg
 
     transaction {
         while (devicesTable.select { devicesTable.uuid eq uuid }.count() != 0L)
-            uuid = generateUUID(config.UUIDLength, 10)
+            uuid = generateUUID(config.dbConfig.UUIDLength, 10)
         var userUUID =
             loginSecretsTable.select { loginSecretsTable.secret eq loginSecret }.single()[loginSecretsTable.userUUID]
         devicesTable.insert {
@@ -43,9 +42,9 @@ fun registerDevice(name: String, mac: String, loginSecret: String): CMMDeviceReg
 }
 
 fun registerDeviceResponse(request: Request): Response {
-    var name = request.query("name") ?: return Response(missingQuery)
-    var mac = request.query("mac") ?: return Response(missingQuery)
-    var loginSecret = request.query("loginSecret") ?: return Response(missingQuery)
+    var name = request.query("name") ?: return Response(config.httpResponses.missingQuery.toStatus())
+    var mac = request.query("mac") ?: return Response(config.httpResponses.missingQuery.toStatus())
+    var loginSecret = request.query("loginSecret") ?: return Response(config.httpResponses.missingQuery.toStatus())
     var device = registerDevice(
         name = name,
         mac = mac,
@@ -54,20 +53,20 @@ fun registerDeviceResponse(request: Request): Response {
     return if (!device.uuid.isEmpty()) Response(Status.CREATED).with(
         Body.auto<CMMDeviceRegistered>().toLens() of device
     ) else Response(
-        inDatabaseNotFound
+        config.httpResponses.inDatabaseNotFound.toStatus()
     )
 }
 
 fun requestRegisterDeviceResponse(request: Request): Response {
-    var uuid = request.query("uuid")?:return Response(missingQuery)
+    var uuid = request.query("uuid")?:return Response(config.httpResponses.missingQuery.toStatus())
     var loginSecret = createLoginSecret()
     var mail = ""
     transaction {
         mail = usersTable.select{usersTable.uuid eq uuid}.single()[usersTable.mail]
     }
     if(mail!= "") {
-        sendEMail(mailConfig.mailFrom, mail, "CMM new device login secret", "here ist your login secret: $loginSecret")
+        sendEMail(config.mailConfig.mailFrom, mail, "CMM new device login secret", "here ist your login secret: $loginSecret")
         return Response(Status.OK)
     }
-    else return Response(inDatabaseNotFound)
+    else return Response(config.httpResponses.inDatabaseNotFound.toStatus())
 }

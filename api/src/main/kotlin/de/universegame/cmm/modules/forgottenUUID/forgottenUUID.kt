@@ -1,8 +1,9 @@
 package de.universegame.cmm.modules.forgottenUUID
 
 import de.universegame.cmm.CMMInfoJackson.auto
+import de.universegame.cmm.config
 import de.universegame.cmm.database.devicesTable
-import de.universegame.cmm.inDatabaseNotFound
+import de.universegame.cmm.toStatus
 import org.http4k.core.*
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -19,7 +20,7 @@ fun getJSONCMMForgottenUUID(clientSecret: String): CMMForgottenUUID {
 
 fun getJSONCMMForgottenUUID(request: Request): Response {
     var uuid = getJSONCMMForgottenUUID(clientSecret = request.query("clientsecret") ?: "")
-    if(uuid.uuid.isEmpty()) return Response(inDatabaseNotFound)
+    if(uuid.uuid.isEmpty()) return Response(config.httpResponses.inDatabaseNotFound.toStatus())
     return Response(Status.OK).with(
         Body.auto<CMMForgottenUUID>()
             .toLens() of uuid
