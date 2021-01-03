@@ -11,6 +11,10 @@ import java.time.ZoneOffset
 
 var database: Database? = null
 
+/**
+ * Init Database:
+ * Create Schemas, update server info
+ * **/
 fun initializeDB() {
     database = Database.connect(config.dbConfig.mysqlUrl, driver = "com.mysql.jdbc.Driver", user = config.dbConfig.mysqlUser, password = config.dbConfig.mysqlPwd)
 
@@ -23,7 +27,10 @@ fun initializeDB() {
     }
 }
 
-fun updateCMMInfoTable() {
+/**
+ * update server info in database, is rather redundant than necessary
+ * **/
+private fun updateCMMInfoTable() {
     cmmInfoTable.upsert(cmmInfoTable.key) {
         it[key] = "version"
         it[value] = config.cmmServerVersion

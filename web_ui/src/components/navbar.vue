@@ -16,9 +16,6 @@ export default class NavBar extends Vue {
 
   @Prop({ default: false })
   loggedIn: Boolean = false
-  mounted() {
-
-  }
 
 }
 </script>

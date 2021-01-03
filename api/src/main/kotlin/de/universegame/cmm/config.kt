@@ -46,11 +46,11 @@ fun Int.toStatus(): Status {
 
 @Serializable
 data class MailConfig(
-    val mailServerURL: String = externalMailConfig.mailServerURL,
-    val mailServerUsername: String = externalMailConfig.mailServerUsername,
-    val mailServerUserPwd: String = externalMailConfig.mailServerUserPwd,
-    val mailFrom: String = externalMailConfig.mailFrom,
-    val mailServerPort: Int = externalMailConfig.mailServerPort
+    val mailServerURL: String = "your mail server URL",
+    val mailServerUsername: String ="your account on that mailserver",
+    val mailServerUserPwd: String = "corresponding password to username",
+    val mailFrom: String = "the mail-address, all mails should be sent from (reciever server (after at-symbol) has to be the same as your server URL",
+    val mailServerPort: Int = 456
 )
 
 @Serializable

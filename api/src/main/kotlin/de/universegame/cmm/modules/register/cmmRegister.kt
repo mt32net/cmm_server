@@ -12,7 +12,10 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 data class CMMDeviceRegistered(val uuid: String, val clientSecret: String)
 
-fun registerDevice(name: String, mac: String, loginSecret: String): CMMDeviceRegistered {
+/**
+ * Registers a new Devices
+ * **/
+private fun registerDevice(name: String, mac: String, loginSecret: String): CMMDeviceRegistered {
     var cancel = false
     transaction {
         if (loginSecretsTable.select { loginSecretsTable.secret eq loginSecret }.count() != 1L)
@@ -41,6 +44,9 @@ fun registerDevice(name: String, mac: String, loginSecret: String): CMMDeviceReg
     return CMMDeviceRegistered(uuid = uuid, clientSecret = clientsecret)
 }
 
+/**
+ * Handles devices registration request
+ * **/
 fun registerDeviceResponse(request: Request): Response {
     var name = request.query("name") ?: return Response(config.httpResponses.missingQuery.toStatus())
     var mac = request.query("mac") ?: return Response(config.httpResponses.missingQuery.toStatus())
@@ -57,6 +63,9 @@ fun registerDeviceResponse(request: Request): Response {
     )
 }
 
+/**
+ * Handles request for devices registration request
+ * **/
 fun requestRegisterDeviceResponse(request: Request): Response {
     var uuid = request.query("uuid")?:return Response(config.httpResponses.missingQuery.toStatus())
     var loginSecret = createLoginSecret()

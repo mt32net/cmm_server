@@ -4,7 +4,9 @@ import org.apache.commons.mail.DefaultAuthenticator
 import org.apache.commons.mail.Email
 import org.apache.commons.mail.SimpleEmail
 
-
+/**
+ * Sends an e-mail, requires the **config.mailConfig** variables to be properly set
+ * **/
 fun sendEMail(from: String, to: String, subject: String, msg: String) {
     val email: Email = SimpleEmail()
     email.hostName = config.mailConfig.mailServerURL

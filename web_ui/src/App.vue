@@ -10,11 +10,9 @@
 <script lang="ts">
 import Vue from 'vue'
 //@ts-ignore
-import info from '@/components/info.vue'
-//@ts-ignore
 import NavBar from '@/components/navbar.vue'
 
-function getCookie(cname) {
+function getCookie(cname): string {
   var name = cname + "=";
   var decodedCookie = decodeURIComponent(document.cookie);
   var ca = decodedCookie.split(';');
@@ -30,16 +28,21 @@ function getCookie(cname) {
   return "";
 }
 
-function getDecodedJWT() {
+function getDecodedJWT(): string {
   var cookieRAW = getCookie("cmmJWT")
-  var encodedPayload = cookieRAW.split(".")[1]
-  return atob(encodedPayload)
+  if (cookieRAW != "") {
+    var encodedPayload = cookieRAW.split(".")[1]
+    return atob(encodedPayload)
+  }
+  else return ""
 }
 
-function getJSONJWT() {
-  return JSON.parse(getDecodedJWT())
+function getJSONJWT(): any {
+  var json = getDecodedJWT()
+  if (json != "")
+    return JSON.parse(json)
+  else return ""
 }
-
 
 export default Vue.extend({
   components: {
@@ -49,25 +52,17 @@ export default Vue.extend({
     this.setSettings()
   },
   mounted() {
-    this.$nextTick(function () {
-      window.addEventListener('resize', this.updateContentWidth)
+    this.$nextTick(() => {
+      window.addEventListener("resize", this.updateContentWidth)
       this.content = this.$refs.content
       this.navBar = this.$refs.nav
       this.updateContentWidth()
       this.setSettings()
     })
-    this.declareGlobalVariables()
-
-
   },
   methods: {
-    declareGlobalVariables() {
-      //@ts-ignore
-      //window.apiServer = "localhost:9000"
-    },
-
     updateContentWidth() {
-      var contentSubtract = ".5rem"
+      var contentSubtract = "0.5rem"
       var navBarWidth = this.navBar.$el.clientWidth
       this.content.style.paddingLeft = "calc(" + navBarWidth + "px - " + contentSubtract + ")"
     },
@@ -75,20 +70,20 @@ export default Vue.extend({
     setSettings() {
       document.title = this.$route.name
       this.cookieData = getDecodedJWT()
-      this.loggedIn = (this.cookieData != "" || this.cookieData != undefined)
+      this.loggedIn = (this.cookieData != "")
     }
   },
   data(): {
     loggedIn: Boolean,
     cookieData: String,
-    content: any,
-    nacBar: any
+    content: Element,
+    navBar: Element
   } {
     return {
       loggedIn: false,
       cookieData: "",
-      content: this.$refs.content,
-      nacBar: this.$refs.nav
+      content: this.$refs.content as Element,
+      navBar: this.$refs.nav as Element
     }
   }
 })

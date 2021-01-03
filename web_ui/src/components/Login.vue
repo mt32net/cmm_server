@@ -1,33 +1,26 @@
 <template>
   <div class="container">
     <div v-if="!loggedIn">
-      <div v-if="!updated && !verify">
+      <div v-if="!userActionDone && !verify">
         <form @submit="checkRegisterForm" novalidate="true">
           <div class="block">
             <div class="label">Username</div>
-            <input
-              v-model="username"
-              type="text"
-              name="username"
-              class="border"
-            />
+            <input v-model="username" type="text" name="username" class="border" />
             <br />
           </div>
           <div class="block" v-if="!login">
             <div class="label">E-Mail</div>
             <input v-model="mail" type="text" name="mail" class="border" />
           </div>
-          <div class="block">
-            <div class="label">Password</div>
-            <input v-model="pwd" type="password" name="pwd" class="border" />
-          </div>
 
           <br />
 
-          <input type="submit" value="Sign in" />
+          <input type="submit" value="Sign in" v-if="login" />
+          <input type="submit" value="Sign up" v-if="!login" />
         </form>
         <br />
-        <a @click="switchLogin" class="switching">Switch login/register</a>
+        <a @click="switchLogin" class="switching" v-if="login">Switch to register</a>
+        <a click="switchLogin" class="switching" v-if="!login">Switch to login</a>
       </div>
     </div>
 
@@ -39,10 +32,10 @@
     </div>
 
     <div v-if="verify">
-      <h1>Thee verification process is running in background</h1>
+      <h1>The verification process is running in background</h1>
     </div>
 
-    <div v-if="updated">
+    <div v-if="userActionDone">
       <div v-if="verified">
         <h1>Verified</h1>
         <h3>{{ username }} was successfully verified</h3>
@@ -67,7 +60,7 @@
 import { Component, Vue } from 'vue-property-decorator'
 import axios from 'axios'
 
-function getCookie(cname: String) {
+function getCookie(cname): string {
   var name = cname + "=";
   var decodedCookie = decodeURIComponent(document.cookie);
   var ca = decodedCookie.split(';');
@@ -83,14 +76,20 @@ function getCookie(cname: String) {
   return "";
 }
 
-function getDecodedJWT() {
+function getDecodedJWT(): string {
   var cookieRAW = getCookie("cmmJWT")
-  var encodedPayload = cookieRAW.split(".")[1]
-  return atob(encodedPayload)
+  if (cookieRAW != "") {
+    var encodedPayload = cookieRAW.split(".")[1]
+    return atob(encodedPayload)
+  }
+  else return ""
 }
 
-function getJSONJWT() {
-  return JSON.parse(getDecodedJWT())
+function getJSONJWT(): any {
+  var json = getDecodedJWT()
+  if (json != "")
+    return JSON.parse(json)
+  else return ""
 }
 
 function delete_cookie(name: String, path: String, domain: String) {
@@ -107,7 +106,6 @@ export default class Login extends Vue {
 
   username: String = ""
   mail: String = ""
-  pwd: String = ""
   login: Boolean = true
 
   verify: Boolean = false
@@ -122,11 +120,10 @@ export default class Login extends Vue {
 
   checkRegisterForm(e: any) {
     e.preventDefault()
-    if (this.login && this.username != "" && this.pwd != "") {
+    if (this.login && this.username != "") {
       axios.get("/api/user/login", {
         params: {
           username: this.username,
-          pwd: this.pwd
         }
       })
         .then(() => {
@@ -137,12 +134,11 @@ export default class Login extends Vue {
           console.log(error)
         })
     }
-    if (!this.login && this.mail != "" && this.username != "" && this.pwd != "") {
+    if (!this.login && this.mail != "" && this.username != "") {
       axios.post("/api/user/register", null, {
         params: {
           username: this.username,
-          mail: this.mail,
-          pwd: this.pwd
+          mail: this.mail
         }
       })
         .then(() => {
@@ -166,7 +162,7 @@ export default class Login extends Vue {
         break
     }
 
-    this.mounted()
+    this.init()
   }
 
   switchLogin() {
@@ -174,10 +170,16 @@ export default class Login extends Vue {
   }
 
   mounted() {
-    //@ts-ignore
-    this.username = getJSONJWT().username
-    if (this.username != "")
-      this.loggedIn = true
+    this.init()
+  }
+
+  init() {
+    var jwt = getJSONJWT()
+    if (jwt != "") {
+      this.username = getJSONJWT().username
+      if (this.username != "")
+        this.loggedIn = true
+    }
     //@ts-ignore
     var verify = this.$route.query.verify
     if (verify != undefined) {
@@ -185,7 +187,7 @@ export default class Login extends Vue {
       axios.get("/api/user/verify", { params: { loginSecret: verify } })
         .then(() => {
           this.verify = false
-          this.updated = true
+          this.userActionDone = true
           this.topic = "verify"
         })
         .catch(error => {

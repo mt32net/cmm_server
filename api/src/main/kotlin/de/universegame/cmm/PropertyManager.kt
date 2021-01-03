@@ -5,15 +5,23 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 
+/**
+ * load configuration from file **filename**
+ * @return true
+ * **/
 fun loadConfig(filename: String): Boolean {
     var file = File(filename)
     if(!file.exists())
         saveConfig(filename)
     var jsonData = file.readText()
     config = Json.decodeFromString(jsonData)
-    return false
+    return true
 }
 
+/**
+ * save configuration to file **filename**
+ * @return true
+ * **/
 fun saveConfig(filename: String) {
     var file = File(filename)
     if(file.createNewFile()) {

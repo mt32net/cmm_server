@@ -45,93 +45,136 @@ fun getJSONCMMUser(uuid: String): CMMUser {
     return CMMUser(uuid)
 }
 
+/**
+ * Creates an unverified user
+ *
+ * the request must have these queries: **username**, **mail**
+ * @param request The http request from the user
+ * @return Return a "standalone" HTTP Response, possible response codes: CREATED
+ * **/
 fun createUserResponse(request: Request): Response {
     val username = request.query("username") ?: return Response(config.httpResponses.missingQuery.toStatus())
     val mail = request.query("mail") ?: return Response(config.httpResponses.missingQuery.toStatus())
-    val pwd = request.query("pwd") ?: return Response(config.httpResponses.missingQuery.toStatus())
     val uuid = generateUUID(config.dbConfig.UUIDLength, 5)
-    val loginSecret = generateUUID(10, 11)
+    val verificationSecret = generateUUID(10, 11)
     transaction {
         usersTable.insert {
             it[usersTable.username] = username
             it[usersTable.mail] = mail
-            it[usersTable.pwd] = pwd
+            it[usersTable.pwd] = "mail"
             it[usersTable.uuid] = uuid
             it[usersTable.verified] = false
         }
         loginSecretsTable.insert {
             it[userUUID] = uuid
             it[created] = LocalDateTime.now()
-            it[secret] = loginSecret
+            it[secret] = verificationSecret
         }
     }
     sendEMail(
         config.mailConfig.mailFrom, mail, "CMM Verification",
-        "Click link to verify: ${config.serverConfig.serverPrefix}://${config.serverConfig.serverAdress}/#/login?verify=$loginSecret \n " +
-                "If the server is not running, access the api directly: ${config.serverConfig.serverPrefix}://${config.serverConfig.serverAdress}/api/user/verify?loginSecret=$loginSecret"
+        "Click link to verify: ${config.serverConfig.serverPrefix}://${config.serverConfig.serverAdress}/#/login?verify=$verificationSecret \n " +
+                "If the server is not running, access the api directly: ${config.serverConfig.serverPrefix}://${config.serverConfig.serverAdress}/api/user/verify?loginSecret=$verificationSecret"
     )
     return Response(Status.CREATED).body("User created, check your emails to verify and login")
 }
 
+/**
+ * Verifying user with **loginSecret** in query
+ * @param request The http request from the user
+ * @return Return a "standalone" HTTP Response, possible response codes: OK, PRECONDITION_FAILED
+ * **/
 fun verfiyUserResponse(request: Request): Response {
+    //get loginsecret query
     val loginSecret = request.query("loginSecret") ?: return Response(config.httpResponses.missingQuery.toStatus())
     var updated = false
     var username = ""
     transaction {
         var query = loginSecretsTable.select { loginSecretsTable.secret eq loginSecret }
+        //verify that loginSecret exists
         if (query.count() != 0L) {
             var userUUID = query.single()[loginSecretsTable.userUUID]
             username = usersTable.select { usersTable.uuid eq userUUID }.single()[usersTable.username]
+            //delete loginSecret
             loginSecretsTable.deleteWhere { loginSecretsTable.secret eq loginSecret }
+            //update user profile
             usersTable.update({ usersTable.uuid eq userUUID }) {
                 it[usersTable.verified] = true
             }
             updated = true
         }
     }
-    return if(updated)
+    return if (updated)
         Response(OK).body("User $username was successfully verified, continue to login")
     else Response(Status.PRECONDITION_FAILED).body("loginsecret nonexistent")
 }
 
+/**
+ * Login User:
+ *
+ * if query **username** exists, a loginToken will be sent in an e-mail,
+ *
+ * if query **token** exists and is valid, the user will be signed by a cookie as a Response,
+ *
+ * if neither is provided, the status code defined in **config.httpResponses.missingQuery** will be returned with an empty body
+ * @param request The http request by the user
+ * @return Return a "standalone" HTTP Response, possible response codes: OK, **config.httpResponses.missingQuery**
+ * **/
 fun loginUserResponse(request: Request): Response {
-    val username = request.query("username") ?: return Response(config.httpResponses.missingQuery.toStatus())
-    val pwd = request.query("pwd") ?: return Response(config.httpResponses.missingQuery.toStatus())
-    var code = OK
+    val username = request.query("username")
+    val token = request.query("token")
+    if (username == null && token == null)
+        return Response(config.httpResponses.missingQuery.toStatus())
+    var response = Response(config.httpResponses.inDatabaseNotFound.toStatus())
     var errorString = ""
-    var sessionToken = ""
-    var userUUID = ""
     var mail = ""
     transaction {
-        var usersQuery = usersTable.select { usersTable.username eq username }
-        if (usersQuery.count() == 1L) {
-            userUUID = usersQuery.single()[usersTable.uuid]
-            mail = usersQuery.single()[usersTable.mail]
-            if (usersQuery.single()[usersTable.pwd] == pwd) {
-                sessionToken = createSessionToken()
-                sessionsTable.insert {
-                    it[uuid] = userUUID
-                    it[sessionID] = sessionToken
-                    it[created] = LocalDateTime.now()
-                    it[expiration] = LocalDateTime.now().plusDays(config.cookieExpirationInDays)
-                }
-            } else {
-                code = Status.UNAUTHORIZED
-                errorString = "username or password wrong"
+        if (token != null) {
+            var userUUID = sessionsTable.select { sessionsTable.sessionID eq token }.single()[sessionsTable.uuid]
+            var mysqlUsername = usersTable.select { usersTable.uuid eq userUUID }.single()[usersTable.username]
+            var sessionToken = createSessionToken()
+            sessionsTable.insert {
+                it[uuid] = userUUID
+                it[sessionID] = sessionToken
+                it[created] = LocalDateTime.now()
+                it[expiration] = LocalDateTime.now().plusDays(config.cookieExpirationInDays)
+                sessionsTable.deleteWhere { sessionsTable.uuid eq userUUID and (sessionsTable.expiration less LocalDateTime.now()) }
+                response = Response(OK).cookie(
+                    Cookie(
+                        "cmmJWT",
+                        generateJWT(userUUID, mysqlUsername, mail, sessionToken),
+                        path = "/"
+                    )
+                )
+                    .body("User logged in, cookie was set")
             }
-            sessionsTable.deleteWhere { sessionsTable.uuid eq userUUID and (sessionsTable.expiration less LocalDateTime.now()) }
+        } else if (username != null) {
+            var userUUID = usersTable.select { usersTable.username eq username }.single()[usersTable.uuid]
+            val genToken = createLoginSecret()
+            sessionsTable.insert {
+                it[sessionsTable.sessionID] = genToken
+                it[sessionsTable.uuid] = userUUID
+                it[sessionsTable.created] = LocalDateTime.now()
+                it[sessionsTable.expiration] = LocalDateTime.now().plusMinutes(30)
+            }
+            sendEMail(
+                config.mailConfig.mailFrom,
+                mail,
+                "Mail Login Secret",
+                "Click to login: ${config.serverConfig.serverPrefix}://${config.serverConfig.serverAdress}/#/login?token=$genToken"
+            )
         } else {
-            code = config.httpResponses.inDatabaseNotFound.toStatus()
-            errorString = "nonexistent user"
+            //if neither username nor token is defined, do nothing
         }
     }
-    return if (code != OK)
-        Response(code).body(errorString)
-    else
-        Response(code).cookie(Cookie("cmmJWT", generateJWT(userUUID, username, mail, sessionToken), path = "/"))
-            .body("User logged in, cookie was set")
+    return response
 }
 
+/**
+ * Send the user's uuid, if **username** is in the query
+ * @param request The http request from the user
+ * @return Return a "standalone" HTTP Response, possible response codes: OK, PRECONDITION_FAILED
+ * **/
 fun getUUIDResponse(request: Request): Response {
     var username = request.query("username") ?: return Response(config.httpResponses.missingQuery.toStatus())
     var uuidString = ""
