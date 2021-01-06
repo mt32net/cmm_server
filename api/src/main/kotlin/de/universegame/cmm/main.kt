@@ -24,6 +24,8 @@ object CMMInfoJackson : ConfigurableJackson(
 )
 
 fun main() {
+    logger.init()
+    log("Init Routes")
     val handler = routes(
         "/api" bind apiRoutes,
         "/test" bind Method.GET to { request: Request ->
@@ -32,11 +34,22 @@ fun main() {
             )
         }
     )
-    loadConfig("./config.json")
-    initializeDB()
+    log("Loading config")
+    val firstBoot = loadConfig("./config.json")
+    if(!firstBoot) {
+        log("Load DB")
+        initializeDB()
 
-    val server = handler.asServer(Netty(config.serverConfig.serverPort)).start()
+        log("Starting server")
+        val server = handler.asServer(Netty(config.serverConfig.serverPort)).start()
+        log("To stop the server, type 'stop'")
 
-    while (readLine() != "e");
-    server.stop()
+        while (readLine() != "stop");
+        log("Stopping server")
+        server.stop()
+    }else{
+        log("Started server without existing config")
+        log("Created config, not initialized database")
+        log("Please set up the config file for proper functiononality")
+    }
 }

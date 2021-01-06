@@ -51,31 +51,41 @@ fun registerDeviceResponse(request: Request): Response {
     var name = request.query("name") ?: return Response(config.httpResponses.missingQuery.toStatus())
     var mac = request.query("mac") ?: return Response(config.httpResponses.missingQuery.toStatus())
     var loginSecret = request.query("loginSecret") ?: return Response(config.httpResponses.missingQuery.toStatus())
-    var device = registerDevice(
-        name = name,
-        mac = mac,
-        loginSecret = loginSecret
-    )
-    return if (!device.uuid.isEmpty()) Response(Status.CREATED).with(
-        Body.auto<CMMDeviceRegistered>().toLens() of device
-    ) else Response(
-        config.httpResponses.inDatabaseNotFound.toStatus()
-    )
+
+    try {
+        var device = registerDevice(
+            name = name,
+            mac = mac,
+            loginSecret = loginSecret
+        )
+        return if (!device.uuid.isEmpty()) Response(Status.CREATED).with(
+            Body.auto<CMMDeviceRegistered>().toLens() of device
+        ) else Response(
+            config.httpResponses.inDatabaseNotFound.toStatus()
+        )
+    } catch (e: Exception) {
+        log(e.stackTraceToString())
+        return Response(Status.BAD_REQUEST)
+    }
 }
 
 /**
  * Handles request for devices registration request
  * **/
 fun requestRegisterDeviceResponse(request: Request): Response {
-    var uuid = request.query("uuid")?:return Response(config.httpResponses.missingQuery.toStatus())
+    var uuid = request.query("uuid") ?: return Response(config.httpResponses.missingQuery.toStatus())
     var loginSecret = createLoginSecret()
     var mail = ""
     transaction {
-        mail = usersTable.select{usersTable.uuid eq uuid}.single()[usersTable.mail]
+        mail = usersTable.select { usersTable.uuid eq uuid }.single()[usersTable.mail]
     }
-    if(mail!= "") {
-        sendEMail(config.mailConfig.mailFrom, mail, "CMM new device login secret", "here ist your login secret: $loginSecret")
+    if (mail != "") {
+        sendEMail(
+            config.mailConfig.mailFrom,
+            mail,
+            "CMM new device login secret",
+            "here ist your login secret: $loginSecret"
+        )
         return Response(Status.OK)
-    }
-    else return Response(config.httpResponses.inDatabaseNotFound.toStatus())
+    } else return Response(config.httpResponses.inDatabaseNotFound.toStatus())
 }

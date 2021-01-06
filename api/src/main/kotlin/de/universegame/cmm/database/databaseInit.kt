@@ -2,6 +2,7 @@ package de.universegame.cmm.database
 
 import de.universegame.cmm.config
 import de.universegame.cmm.dateTimeFormatter
+import de.universegame.cmm.log
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -31,6 +32,7 @@ fun initializeDB() {
  * update server info in database, is rather redundant than necessary
  * **/
 private fun updateCMMInfoTable() {
+    log("Update server information on db")
     cmmInfoTable.upsert(cmmInfoTable.key) {
         it[key] = "version"
         it[value] = config.cmmServerVersion

@@ -57,26 +57,31 @@ fun createUserResponse(request: Request): Response {
     val mail = request.query("mail") ?: return Response(config.httpResponses.missingQuery.toStatus())
     val uuid = generateUUID(config.dbConfig.UUIDLength, 5)
     val verificationSecret = generateUUID(10, 11)
-    transaction {
-        usersTable.insert {
-            it[usersTable.username] = username
-            it[usersTable.mail] = mail
-            it[usersTable.pwd] = "mail"
-            it[usersTable.uuid] = uuid
-            it[usersTable.verified] = false
+    try {
+        transaction {
+            usersTable.insert {
+                it[usersTable.username] = username
+                it[usersTable.mail] = mail
+                it[usersTable.pwd] = "mail"
+                it[usersTable.uuid] = uuid
+                it[usersTable.verified] = false
+            }
+            loginSecretsTable.insert {
+                it[userUUID] = uuid
+                it[created] = LocalDateTime.now()
+                it[secret] = verificationSecret
+            }
         }
-        loginSecretsTable.insert {
-            it[userUUID] = uuid
-            it[created] = LocalDateTime.now()
-            it[secret] = verificationSecret
-        }
+        sendEMail(
+            config.mailConfig.mailFrom, mail, "CMM Verification",
+            "Click link to verify: ${config.serverConfig.serverPrefix}://${config.serverConfig.serverAdress}/#/login?verify=$verificationSecret \n " +
+                    "If the server is not running, access the api directly: ${config.serverConfig.serverPrefix}://${config.serverConfig.serverAdress}/api/user/verify?loginSecret=$verificationSecret"
+        )
+        return Response(Status.CREATED).body("User created, check your emails to verify and login")
+    } catch (e: Exception) {
+        log(e.stackTraceToString())
+        return Response(Status.BAD_REQUEST)
     }
-    sendEMail(
-        config.mailConfig.mailFrom, mail, "CMM Verification",
-        "Click link to verify: ${config.serverConfig.serverPrefix}://${config.serverConfig.serverAdress}/#/login?verify=$verificationSecret \n " +
-                "If the server is not running, access the api directly: ${config.serverConfig.serverPrefix}://${config.serverConfig.serverAdress}/api/user/verify?loginSecret=$verificationSecret"
-    )
-    return Response(Status.CREATED).body("User created, check your emails to verify and login")
 }
 
 /**
@@ -89,24 +94,29 @@ fun verfiyUserResponse(request: Request): Response {
     val loginSecret = request.query("loginSecret") ?: return Response(config.httpResponses.missingQuery.toStatus())
     var updated = false
     var username = ""
-    transaction {
-        var query = loginSecretsTable.select { loginSecretsTable.secret eq loginSecret }
-        //verify that loginSecret exists
-        if (query.count() != 0L) {
-            var userUUID = query.single()[loginSecretsTable.userUUID]
-            username = usersTable.select { usersTable.uuid eq userUUID }.single()[usersTable.username]
-            //delete loginSecret
-            loginSecretsTable.deleteWhere { loginSecretsTable.secret eq loginSecret }
-            //update user profile
-            usersTable.update({ usersTable.uuid eq userUUID }) {
-                it[usersTable.verified] = true
+    try {
+        transaction {
+            var query = loginSecretsTable.select { loginSecretsTable.secret eq loginSecret }
+            //verify that loginSecret exists
+            if (query.count() != 0L) {
+                var userUUID = query.single()[loginSecretsTable.userUUID]
+                username = usersTable.select { usersTable.uuid eq userUUID }.single()[usersTable.username]
+                //delete loginSecret
+                loginSecretsTable.deleteWhere { loginSecretsTable.secret eq loginSecret }
+                //update user profile
+                usersTable.update({ usersTable.uuid eq userUUID }) {
+                    it[usersTable.verified] = true
+                }
+                updated = true
             }
-            updated = true
         }
+        return if (updated)
+            Response(OK).body("User $username was successfully verified, continue to login")
+        else Response(Status.PRECONDITION_FAILED).body("loginsecret nonexistent")
+    } catch (e: Exception) {
+        log(e.stackTraceToString())
+        return Response(Status.BAD_REQUEST)
     }
-    return if (updated)
-        Response(OK).body("User $username was successfully verified, continue to login")
-    else Response(Status.PRECONDITION_FAILED).body("loginsecret nonexistent")
 }
 
 /**
@@ -128,46 +138,51 @@ fun loginUserResponse(request: Request): Response {
     var response = Response(config.httpResponses.inDatabaseNotFound.toStatus())
     var errorString = ""
     var mail = ""
-    transaction {
-        if (token != null) {
-            var userUUID = sessionsTable.select { sessionsTable.sessionID eq token }.single()[sessionsTable.uuid]
-            var mysqlUsername = usersTable.select { usersTable.uuid eq userUUID }.single()[usersTable.username]
-            var sessionToken = createSessionToken()
-            sessionsTable.insert {
-                it[uuid] = userUUID
-                it[sessionID] = sessionToken
-                it[created] = LocalDateTime.now()
-                it[expiration] = LocalDateTime.now().plusDays(config.cookieExpirationInDays)
-                sessionsTable.deleteWhere { sessionsTable.uuid eq userUUID and (sessionsTable.expiration less LocalDateTime.now()) }
-                response = Response(OK).cookie(
-                    Cookie(
-                        "cmmJWT",
-                        generateJWT(userUUID, mysqlUsername, mail, sessionToken),
-                        path = "/"
+    try {
+        transaction {
+            if (token != null) {
+                var userUUID = sessionsTable.select { sessionsTable.sessionID eq token }.single()[sessionsTable.uuid]
+                var mysqlUsername = usersTable.select { usersTable.uuid eq userUUID }.single()[usersTable.username]
+                var sessionToken = createSessionToken()
+                sessionsTable.insert {
+                    it[uuid] = userUUID
+                    it[sessionID] = sessionToken
+                    it[created] = LocalDateTime.now()
+                    it[expiration] = LocalDateTime.now().plusDays(config.cookieExpirationInDays)
+                    sessionsTable.deleteWhere { sessionsTable.uuid eq userUUID and (sessionsTable.expiration less LocalDateTime.now()) }
+                    response = Response(OK).cookie(
+                        Cookie(
+                            "cmmJWT",
+                            generateJWT(userUUID, mysqlUsername, mail, sessionToken),
+                            path = "/"
+                        )
                     )
+                        .body("User logged in, cookie was set")
+                }
+            } else if (username != null) {
+                var userUUID = usersTable.select { usersTable.username eq username }.single()[usersTable.uuid]
+                val genToken = createLoginSecret()
+                sessionsTable.insert {
+                    it[sessionsTable.sessionID] = genToken
+                    it[sessionsTable.uuid] = userUUID
+                    it[sessionsTable.created] = LocalDateTime.now()
+                    it[sessionsTable.expiration] = LocalDateTime.now().plusMinutes(30)
+                }
+                sendEMail(
+                    config.mailConfig.mailFrom,
+                    mail,
+                    "Mail Login Secret",
+                    "Click to login: ${config.serverConfig.serverPrefix}://${config.serverConfig.serverAdress}/#/login?token=$genToken"
                 )
-                    .body("User logged in, cookie was set")
+            } else {
+                //if neither username nor token is defined, do nothing
             }
-        } else if (username != null) {
-            var userUUID = usersTable.select { usersTable.username eq username }.single()[usersTable.uuid]
-            val genToken = createLoginSecret()
-            sessionsTable.insert {
-                it[sessionsTable.sessionID] = genToken
-                it[sessionsTable.uuid] = userUUID
-                it[sessionsTable.created] = LocalDateTime.now()
-                it[sessionsTable.expiration] = LocalDateTime.now().plusMinutes(30)
-            }
-            sendEMail(
-                config.mailConfig.mailFrom,
-                mail,
-                "Mail Login Secret",
-                "Click to login: ${config.serverConfig.serverPrefix}://${config.serverConfig.serverAdress}/#/login?token=$genToken"
-            )
-        } else {
-            //if neither username nor token is defined, do nothing
         }
+        return response
+    } catch (e: Exception) {
+        log(e.stackTraceToString())
+        return Response(Status.BAD_REQUEST)
     }
-    return response
 }
 
 /**
@@ -178,15 +193,20 @@ fun loginUserResponse(request: Request): Response {
 fun getUUIDResponse(request: Request): Response {
     var username = request.query("username") ?: return Response(config.httpResponses.missingQuery.toStatus())
     var uuidString = ""
-    transaction {
-        uuidString = usersTable.select { usersTable.username eq username }.single()[usersTable.uuid]
+    try {
+        transaction {
+            uuidString = usersTable.select { usersTable.username eq username }.single()[usersTable.uuid]
+        }
+        var uuid = CMMForgottenUUID(uuidString)
+        if (uuidString.isEmpty())
+            return Response(config.httpResponses.inDatabaseNotFound.toStatus()).body("username not found")
+        else
+            return Response(Status.OK).with(
+                Body.auto<CMMForgottenUUID>()
+                    .toLens() of uuid
+            )
+    } catch (e: Exception) {
+        log(e.stackTraceToString())
+        return Response(Status.BAD_REQUEST)
     }
-    var uuid = CMMForgottenUUID(uuidString)
-    if (uuidString.isEmpty())
-        return Response(config.httpResponses.inDatabaseNotFound.toStatus()).body("username not found")
-    else
-        return Response(Status.OK).with(
-            Body.auto<CMMForgottenUUID>()
-                .toLens() of uuid
-        )
 }

@@ -6,6 +6,7 @@ import de.universegame.cmm.config
 import de.universegame.cmm.database.devicesTable
 import de.universegame.cmm.database.installedModulesTable
 import de.universegame.cmm.generateClientSecret
+import de.universegame.cmm.log
 import de.universegame.cmm.modules.CMMModule
 import de.universegame.cmm.toStatus
 import org.http4k.core.*
@@ -35,23 +36,27 @@ class CMMDevice {
     constructor(uuid: String) : this(devicesTable.select { devicesTable.uuid eq uuid }.single())
 
     constructor(it: ResultRow) {
-        transaction {
-            name = it[devicesTable.name]
-            uuid = it[devicesTable.uuid]
-            var moduleRows = installedModulesTable.select { installedModulesTable.uuid eq uuid }.toList()
-            moduleRows.forEach {
-                modules.add(
-                    CMMModule(
-                        name = it[installedModulesTable.module],
-                        version = it[installedModulesTable.version]
+        try {
+            transaction {
+                name = it[devicesTable.name]
+                uuid = it[devicesTable.uuid]
+                var moduleRows = installedModulesTable.select { installedModulesTable.uuid eq uuid }.toList()
+                moduleRows.forEach {
+                    modules.add(
+                        CMMModule(
+                            name = it[installedModulesTable.module],
+                            version = it[installedModulesTable.version]
+                        )
                     )
-                )
+                }
+                mac = it[devicesTable.mac]
+                user = it[devicesTable.user]
+                verified = it[devicesTable.verified]
+                online = it[devicesTable.online]
+                clientSecret = it[devicesTable.clientSecret]
             }
-            mac = it[devicesTable.mac]
-            user = it[devicesTable.user]
-            verified = it[devicesTable.verified]
-            online = it[devicesTable.online]
-            clientSecret = it[devicesTable.clientSecret]
+        } catch (e: Exception) {
+            log(e.stackTraceToString())
         }
     }
 
@@ -73,17 +78,21 @@ class CMMDevice {
     }
 
     fun saveToDatabase() {
-        transaction {
-            devicesTable.update({ devicesTable.uuid eq uuid }) {
-                it[devicesTable.name] = name
-                it[devicesTable.online] = online
-                it[devicesTable.verified] = verified
-            }
+        try {
+            transaction {
+                devicesTable.update({ devicesTable.uuid eq uuid }) {
+                    it[devicesTable.name] = name
+                    it[devicesTable.online] = online
+                    it[devicesTable.verified] = verified
+                }
 
+            }
+        } catch (e: Exception) {
+            log(e.stackTraceToString())
         }
     }
 
-    fun isEmpty():Boolean{
+    fun isEmpty(): Boolean {
         return uuid.isEmpty()
     }
 }
@@ -96,7 +105,7 @@ fun getJSONCMMDevice(uuid: String): CMMDevice {
     return CMMDevice(uuid)
 }
 
-fun getJSONCMMDeviceResponse(request: Request):Response{
+fun getJSONCMMDeviceResponse(request: Request): Response {
     var uuid: String = request.query("uuid") ?: return Response(config.httpResponses.inDatabaseNotFound.toStatus())
     return Response(Status.OK).with(
         Body.auto<CMMDevice>().toLens() of getJSONCMMDevice(uuid)
@@ -106,20 +115,25 @@ fun getJSONCMMDeviceResponse(request: Request):Response{
 fun updateDeviceInfo(uuid: String?, name: String?, online: Boolean): Status {
     var status: Status = Status.OK
     if (uuid == null) return config.httpResponses.inDatabaseNotFound.toStatus()
-    transaction {
-        if (devicesTable.select { devicesTable.uuid eq uuid }.count() == 0L) {
-            status = config.httpResponses.inDatabaseNotFound.toStatus()
-        } else {
-            devicesTable.update({ devicesTable.uuid eq uuid }) {
-                if (name != null) it[devicesTable.name] = name
-                it[devicesTable.online] = online
+    try {
+        transaction {
+            if (devicesTable.select { devicesTable.uuid eq uuid }.count() == 0L) {
+                status = config.httpResponses.inDatabaseNotFound.toStatus()
+            } else {
+                devicesTable.update({ devicesTable.uuid eq uuid }) {
+                    if (name != null) it[devicesTable.name] = name
+                    it[devicesTable.online] = online
+                }
             }
         }
+        return status
+    } catch (e: Exception) {
+        log(e.stackTraceToString())
+        return Status.BAD_REQUEST
     }
-    return status
 }
 
-fun updateDeviceInfoResponse(request: Request):Response{
+fun updateDeviceInfoResponse(request: Request): Response {
     return Response(
         updateDeviceInfo(
             uuid = request.query("uuid"),

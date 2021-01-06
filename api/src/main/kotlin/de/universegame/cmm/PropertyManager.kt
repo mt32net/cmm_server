@@ -7,14 +7,19 @@ import java.io.File
 
 /**
  * load configuration from file **filename**
- * @return true
+ * @return true if file exists, false if file was created
  * **/
 fun loadConfig(filename: String): Boolean {
     var file = File(filename)
-    if(!file.exists())
+    log("Load config")
+    if(!file.exists()) {
+        log("Config does not exists")
         saveConfig(filename)
+        return false;
+    }
     var jsonData = file.readText()
     config = Json.decodeFromString(jsonData)
+    log("Loaded Config succeessfully")
     return true
 }
 
@@ -25,10 +30,12 @@ fun loadConfig(filename: String): Boolean {
 fun saveConfig(filename: String) {
     var file = File(filename)
     if(file.createNewFile()) {
+        log("Created new config file")
         val config: String = Json {
             encodeDefaults = true
             prettyPrint = true
         }.encodeToString(config)
         file.writeText(config)
+        log("Saved config")
     }
 }
