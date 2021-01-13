@@ -1,58 +1,67 @@
 <template>
   <div class="container">
-    <div v-if="!loggedIn">
-      <div v-if="!userActionDone && !verify">
-        <form @submit="checkRegisterForm" novalidate="true">
-          <div class="block">
-            <div class="label">Username</div>
-            <input v-model="username" type="text" name="username" class="border" />
-            <br />
-          </div>
-          <div class="block" v-if="!login">
-            <div class="label">E-Mail</div>
-            <input v-model="mail" type="text" name="mail" class="border" />
-          </div>
-
+    <!-- not logged in -->
+    <div v-if="viewD == 2 || viewD == 3">
+      <form @submit="checkRegisterForm" novalidate="true">
+        <div class="block">
+          <div class="label">Username</div>
+          <input v-model="username" type="text" name="username" class="border" />
           <br />
+        </div>
+        <div class="block" v-if="viewD == 3">
+          <div class="label">E-Mail</div>
+          <input v-model="mail" type="text" name="mail" class="border" />
+        </div>
 
-          <input type="submit" value="Sign in" v-if="login" />
-          <input type="submit" value="Sign up" v-if="!login" />
-        </form>
         <br />
-        <a @click="switchLogin" class="switching" v-if="login">Switch to register</a>
-        <a click="switchLogin" class="switching" v-if="!login">Switch to login</a>
-      </div>
+
+        <input type="submit" value="Sign in" v-if="viewD == 2" />
+        <input type="submit" value="Sign up" v-if="viewD == 3" />
+      </form>
+      <br />
+      <a @click="switchLogin" class="switching" v-if="viewD == 2">Switch to register</a>
+      <a @click="switchLogin" class="switching" v-if="viewD == 3">Switch to login</a>
     </div>
 
-    <div v-if="loggedIn">
+    <!-- logged in -->
+    <div v-if="viewD == 6">
       <h2>You are already logged in as {{ username }}</h2>
       <form @submit="logout" novalidate="true">
         <input type="submit" value="Logout" />
       </form>
     </div>
 
-    <div v-if="verify">
+    <!-- verification -->
+    <div v-if="viewD == 0">
       <h1>The verification process is running in background</h1>
     </div>
 
-    <div v-if="userActionDone">
-      <div v-if="verified">
-        <h1>Verified</h1>
-        <h3>{{ username }} was successfully verified</h3>
-      </div>
-      <div v-if="signin">
-        <h1>Signin</h1>
-        <h3>Successfully signed in with {{ username }}</h3>
-      </div>
-      <div v-if="signup">
-        <h1>Signup</h1>
-        <h3>
-          Successfully signup with {{ username }}, check your e-mails to verify
-          and login
-        </h3>
-      </div>
-      <div v-if="signup">User created, check your mails to verify user</div>
+    <!-- responses -->
+    <!--verified-->
+    <div v-if="viewD == 1">
+      <h1>Verified</h1>
+      <h3>Successfully signed up</h3>
     </div>
+    <!--signed in-->
+    <div v-if="viewD == 7">
+      <h1>Signin</h1>
+      <h3>Successfully signed in with {{ username }}</h3>
+    </div>
+    <!--signed up-->
+    <div v-if="viewD == 8">
+      <h1>Signup</h1>
+      <h3>
+        Successfully signed up with {{ username }}, check your e-mails to verify
+        and login
+      </h3>
+    </div>
+
+    <div v-if="viewD == 4">
+      <h1>Signin</h1>
+      <h3>Successfully send signin request with {{ username }}, check your e-mails to login</h3>
+    </div>
+
+    <div class="error">{{error}}</div>
   </div>
 </template>
 
@@ -60,7 +69,7 @@
 import { Component, Vue } from 'vue-property-decorator'
 import axios from 'axios'
 
-function getCookie(cname): string {
+function getCookie(cname: String): string {
   var name = cname + "=";
   var decodedCookie = decodeURIComponent(document.cookie);
   var ca = decodedCookie.split(';');
@@ -101,40 +110,51 @@ function delete_cookie(name: String, path: String, domain: String) {
   }
 }
 
+enum View {
+  verifying = 0, //verification is in the process
+  verified = 1, //user verified
+  signInWindow = 2, //login window
+  signUpWindow = 3, //register window
+  signInRequest = 4, //requesting login
+  alreadyLoggedIn = 6, //already logged in
+  signedIn = 7, //successfully signed in
+  signedUp = 8 //successfully signed up
+}
+
 @Component
 export default class Login extends Vue {
 
   username: String = ""
   mail: String = ""
-  login: Boolean = true
-
-  verify: Boolean = false
-  userActionDone: Boolean = false
-
-  verified: Boolean = false
-  signin: Boolean = false
-  signup: Boolean = false
   topic: String = ""
+
+  viewD: View = View.signInWindow
 
   loggedIn: Boolean = false
 
+  error: String = ""
+
   checkRegisterForm(e: any) {
     e.preventDefault()
-    if (this.login && this.username != "") {
-      axios.get("/api/user/login", {
+    if (this.viewD == View.signInWindow && this.username != "") {
+      this.error = ""
+      axios.post("/api/user/login", null, {
         params: {
           username: this.username,
         }
       })
         .then(() => {
-          this.topic = "signin"
-          this.userActionDone = true
+          this.viewD = View.signInRequest
         })
         .catch(error => {
-          console.log(error)
+          if (error.response.status == 412) {
+            this.error = "Username does not exist"
+          } else {
+            this.error = "An error occured while requesting login mail. Code: " + error.response.status
+          }
+          console.error(error)
         })
-    }
-    if (!this.login && this.mail != "" && this.username != "") {
+    } else if (this.viewD == View.signUpWindow && this.mail != "" && this.username != "") {
       axios.post("/api/user/register", null, {
         params: {
           username: this.username,
@@ -142,31 +162,24 @@ export default class Login extends Vue {
         }
       })
         .then(() => {
-          this.topic = "signup"
-          this.userActionDone = true
+          this.viewD = View.signedUp
         })
         .catch(error => {
           console.error(error)
+          this.error = "An error occured while requesting login mail. Code: " + error.response.status
         })
-    }
-
-    switch (this.topic) {
-      case "verified":
-        this.verified = true
-        break
-      case "signin":
-        this.signin = true
-        break
-      case "signup":
-        this.signup = true
-        break
+    } else {
+      this.error = "You have to at least specifiy a username"
     }
 
     this.init()
   }
 
   switchLogin() {
-    this.login = !this.login
+    if (this.viewD === View.signInWindow)
+      this.viewD = View.signUpWindow
+    else if (this.viewD === View.signUpWindow)
+      this.viewD = View.signInWindow
   }
 
   mounted() {
@@ -179,19 +192,41 @@ export default class Login extends Vue {
       this.username = getJSONJWT().username
       if (this.username != "")
         this.loggedIn = true
+      this.viewD = View.alreadyLoggedIn
     }
     //@ts-ignore
     var verify = this.$route.query.verify
     if (verify != undefined) {
-      this.verify = true
+      this.viewD = View.verifying
+      //@ts-ignore
+      this.username = this.$route.query.username
       axios.get("/api/user/verify", { params: { loginSecret: verify } })
         .then(() => {
-          this.verify = false
-          this.userActionDone = true
-          this.topic = "verify"
+          this.viewD = View.verified
+          var jwt = getJSONJWT()
+          if (jwt != "") {
+            this.username = getJSONJWT().username
+            if (this.username != "")
+              this.loggedIn = true
+            this.viewD = View.alreadyLoggedIn
+          }
         })
         .catch(error => {
           console.error(error)
+          this.error = "An error occured while requesting login mail. Code: " + error.response.status
+        })
+    }
+    //@ts-ignore
+    var token = this.$route.query.token
+    if (token != undefined) {
+      this.viewD = View.verifying
+      axios.post("/api/user/login", null, { params: { token: token } })
+        .then(() => {
+          this.viewD = View.signedIn
+        })
+        .catch(error => {
+          console.error(error)
+          this.error = "An error occured while requesting login mail. Code: " + error.response.status
         })
     }
   }
@@ -204,6 +239,10 @@ export default class Login extends Vue {
 </script>
 
 <style scoped>
+.error {
+  color: red;
+}
+
 .container {
   background-color: #252525;
   width: fit-content;

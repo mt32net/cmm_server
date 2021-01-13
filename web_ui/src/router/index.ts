@@ -1,9 +1,11 @@
 import Vue from 'vue'
 import VueRouter, { RouteConfig } from 'vue-router'
 import Home from '../views/Home.vue'
-import LoginPage from '../views/login/LoginPage.vue'
+import LoginPage from '../views/LoginPage.vue'
 import FormTest from '../components/formTest.vue'
 import info from '../components/info.vue'
+import ModuleInfo from '../views/ModuleInfo.vue'
+import NotificationsInfo from '../views/NotificationsInfo.vue'
 
 Vue.use(VueRouter)
 
@@ -30,6 +32,16 @@ const routes: Array<RouteConfig> = [
     path: '/info',
     name: 'System Info',
     component: info
+  },
+  {
+    path: '/devicesummary',
+    name: 'Device Module Summary',
+    component: ModuleInfo
+  },
+  {
+    path: '/modules/notifications',
+    name: 'Notifications Info',
+    component: NotificationsInfo
   },
   {
     path: "/formtest",
