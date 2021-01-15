@@ -23,14 +23,9 @@ export default class NavBar extends Vue {
 
 <style scoped>
 #nav {
-  vertical-align: left;
   width: fit-content;
-  height: 100%;
-  left: 0;
-  top: 0;
-  position: fixed;
+  min-height: 100%;
   background-color: #393939;
-  z-index: 1;
 }
 
 #nav a {

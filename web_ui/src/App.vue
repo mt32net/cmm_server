@@ -31,12 +31,6 @@ export default Vue.extend({
     })
   },
   methods: {
-    updateContentWidth() {
-      var contentSubtract = "0.5rem"
-      var navBarWidth = this.navBar.$el.clientWidth
-      this.content.style.paddingLeft = "calc(" + navBarWidth + "px - " + contentSubtract + ")"
-    },
-
     setSettings() {
       document.title = this.$route.name
       this.cookieData = getJSONJWT()
@@ -62,6 +56,8 @@ export default Vue.extend({
 <style>
 body {
   background-color: #2d2d2d;
+  padding: 0;
+  margin: 0;
 }
 
 #app {
@@ -73,6 +69,12 @@ body {
   height: 100%;
   width: 100%;
   font-size: 1rem;
+
+  display: flex;
+}
+
+.content {
+  width: 100%;
 }
 </style>
 
