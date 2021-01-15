@@ -2,7 +2,7 @@
   <div>
       <form
   @submit="checkForm"
-  action="https://vuejs.org/"
+  action="/"
   method="post"
   novalidate="true"
 >

@@ -14,7 +14,7 @@
 import NotificationInfo from "@/components/devices/NotificationInfo.vue"
 
 export default {
-  name: "Notifications Info",
+  name: "Notifications_Info",
   components: { NotificationInfo },
 }
 </script>

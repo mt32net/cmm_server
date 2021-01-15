@@ -17,11 +17,9 @@ export default class NavBarDevices extends Vue {
 
 <style scoped>
 #nav {
-  vertical-align: left;
   width: 100%;
   left: 0;
   top: 0;
-  z-index: 1;
   margin-top: 0.7rem;
   margin-bottom: 3rem;
 }
@@ -29,7 +27,7 @@ export default class NavBarDevices extends Vue {
 .router {
   font-weight: bold;
   color: #b1b1b1;
-  display: inline;
+
   text-decoration: none;
   margin: 1rem;
   padding: 1rem;

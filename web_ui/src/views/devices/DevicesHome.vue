@@ -15,7 +15,7 @@ import { getJSONJWT, isLoggedIn } from '@/helper/cookieHelper'
 
 
 export default {
-  name: "Device Overview",
+  name: "Device_Overview",
   components: {
     NavBarDevices,
   },

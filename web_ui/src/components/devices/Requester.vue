@@ -2,8 +2,14 @@
   <div class="container">
     <div v-if="viewD == 0">
       <h1>Request login Token for new Device</h1>
+      <form @submit="newRequest" action="/" method="post" novalidate="true">
+        <input type="submit" value="Request new device-token" />
+      </form>
     </div>
-    <div v-if="viewD == 1">test2</div>
+    <div v-if="viewD == 1">
+      <h1>Requeest sent</h1>
+      <h2>Check mails for new generated token</h2>
+    </div>
     <div class="error">{{error}}</div>
   </div>
 </template>
@@ -11,38 +17,8 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
 import axios from 'axios'
-
-function getCookie(cname: String): string {
-  var name = cname + "=";
-  var decodedCookie = decodeURIComponent(document.cookie);
-  var ca = decodedCookie.split(';');
-  for (var i = 0; i < ca.length; i++) {
-    var c = ca[i];
-    while (c.charAt(0) == ' ') {
-      c = c.substring(1);
-    }
-    if (c.indexOf(name) == 0) {
-      return c.substring(name.length, c.length);
-    }
-  }
-  return "";
-}
-
-function getDecodedJWT(): string {
-  var cookieRAW = getCookie("cmmJWT")
-  if (cookieRAW != "") {
-    var encodedPayload = cookieRAW.split(".")[1]
-    return atob(encodedPayload)
-  }
-  else return ""
-}
-
-function getJSONJWT(): any {
-  var json = getDecodedJWT()
-  if (json != "")
-    return JSON.parse(json)
-  else return ""
-}
+//@ts-ignore
+import { getJSONJWT } from '@/helper/cookieHelper'
 
 enum View {
   newDevice = 0, //request new device login
@@ -58,9 +34,10 @@ export default class Requester extends Vue {
 
   error: String = ""
 
-  checkRegisterForm(e: any) {
+  newRequest(e: any) {
     e.preventDefault()
 
+    this.viewD = View.requestSent
     this.init()
   }
 
