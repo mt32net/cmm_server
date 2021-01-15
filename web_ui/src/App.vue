@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <NavBar id="nav" ref="nav" v-bind:loggedIn="loggedIn" />
+    <NavBar ref="nav" v-bind:loggedIn="loggedIn" />
     <div ref="content" class="content">
       <router-view />
     </div>
@@ -11,38 +11,8 @@
 import Vue from 'vue'
 //@ts-ignore
 import NavBar from '@/components/navbar.vue'
-
-function getCookie(cname): string {
-  var name = cname + "=";
-  var decodedCookie = decodeURIComponent(document.cookie);
-  var ca = decodedCookie.split(';');
-  for (var i = 0; i < ca.length; i++) {
-    var c = ca[i];
-    while (c.charAt(0) == ' ') {
-      c = c.substring(1);
-    }
-    if (c.indexOf(name) == 0) {
-      return c.substring(name.length, c.length);
-    }
-  }
-  return "";
-}
-
-function getDecodedJWT(): string {
-  var cookieRAW = getCookie("cmmJWT")
-  if (cookieRAW != "") {
-    var encodedPayload = cookieRAW.split(".")[1]
-    return atob(encodedPayload)
-  }
-  else return ""
-}
-
-function getJSONJWT(): any {
-  var json = getDecodedJWT()
-  if (json != "")
-    return JSON.parse(json)
-  else return ""
-}
+//@ts-ignore
+import { getJSONJWT, isLoggedIn } from '@/helper/cookieHelper'
 
 export default Vue.extend({
   components: {
@@ -69,8 +39,8 @@ export default Vue.extend({
 
     setSettings() {
       document.title = this.$route.name
-      this.cookieData = getDecodedJWT()
-      this.loggedIn = (this.cookieData != "")
+      this.cookieData = getJSONJWT()
+      this.loggedIn = isLoggedIn()
     }
   },
   data(): {

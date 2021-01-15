@@ -11,7 +11,7 @@
 
 <script lang="ts">
 //@ts-ignore
-import NotificationInfo from "@/components/modules/NotificationInfo.vue"
+import NotificationInfo from "@/components/devices/NotificationInfo.vue"
 
 export default {
   name: "Notifications Info",

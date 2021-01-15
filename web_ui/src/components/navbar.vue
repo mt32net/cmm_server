@@ -1,17 +1,11 @@
 <template>
-  <div>
+  <div id="nav">
     <router-link to="/">Home</router-link>
     <router-link to="/about">About</router-link>
     <router-link to="/info">Info</router-link>
     <router-link to="/login">{{loggedIn?"Logout":"Login"}}</router-link>
-    <router-link to="/devicesummary">Installed Modules</router-link>
-    <div>
-      <a @click="modulesOpen = !modulesOpen">Modules</a>
-      <div v-if="modulesOpen">
-        <router-link to="/modules/notifications">Notifications</router-link>
-      </div>
-    </div>
-    <router-link to="/formtest">Formtest</router-link>
+    <router-link v-if="loggedIn" to="/devices/">Devices</router-link>
+    <router-link to="/formtest">test</router-link>
   </div>
 </template>
 
@@ -23,8 +17,6 @@ export default class NavBar extends Vue {
 
   @Prop({ default: false })
   loggedIn: Boolean = false
-
-  modulesOpen: Boolean = false
 
 }
 </script>

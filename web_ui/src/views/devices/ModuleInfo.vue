@@ -22,7 +22,7 @@
 <script lang="ts">
 import axios from 'axios'
 //@ts-ignore
-import DeviceModuleInfo from "@/components/DeviceModuleInfo.vue"
+import DeviceModuleInfo from "@/components/devices/DeviceModuleInfo.vue"
 
 export default {
   name: "Device Summary",

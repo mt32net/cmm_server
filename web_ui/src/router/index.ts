@@ -1,11 +1,5 @@
 import Vue from 'vue'
 import VueRouter, { RouteConfig } from 'vue-router'
-import Home from '../views/Home.vue'
-import LoginPage from '../views/LoginPage.vue'
-import FormTest from '../components/formTest.vue'
-import info from '../components/info.vue'
-import ModuleInfo from '../views/ModuleInfo.vue'
-import NotificationsInfo from '../views/NotificationsInfo.vue'
 
 Vue.use(VueRouter)
 
@@ -13,7 +7,7 @@ const routes: Array<RouteConfig> = [
   {
     path: '/',
     name: 'CMM - Home',
-    component: Home
+    component: () => import('../views/Home.vue')
   },
   {
     path: '/about',
@@ -26,27 +20,39 @@ const routes: Array<RouteConfig> = [
   {
     path: '/login',
     name: 'Login',
-    component: LoginPage
+    component: () => import('../views/LoginPage.vue')
   },
   {
     path: '/info',
     name: 'System Info',
-    component: info
+    component: () => import('../components/info.vue')
   },
   {
-    path: '/devicesummary',
-    name: 'Device Module Summary',
-    component: ModuleInfo
-  },
-  {
-    path: '/modules/notifications',
-    name: 'Notifications Info',
-    component: NotificationsInfo
+    path: '/devices',
+    name: 'Device Overview',
+    component: () => import('../views/devices/DevicesHome.vue'),
+    children: [
+      {
+        path: '/devices/devicesummary',
+        name: 'Device Module Summary',
+        component: () => import('../views/devices/ModuleInfo.vue')
+      },
+      {
+        path: '/devices/loginRequest',
+        name: 'Device Login Request',
+        component: () => import('../views/devices/DeviceLoginRequest.vue')
+      },
+      {
+        path: '/devices/notifications',
+        name: 'notifications info',
+        component: () => import('../views/devices/NotificationsInfo.vue')
+      },
+    ]
   },
   {
     path: "/formtest",
     name: "Form Test",
-    component: FormTest
+    component: () => import('../components/formTest.vue')
   }
 ]
 
