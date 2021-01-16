@@ -1,11 +1,13 @@
 <template>
   <div id="nav">
-    <router-link to="/">Home</router-link>
-    <router-link to="/about">About</router-link>
-    <router-link to="/info">Info</router-link>
-    <router-link to="/login">{{loggedIn?"Logout":"Login"}}</router-link>
-    <router-link v-if="loggedIn" to="/devices/">Devices</router-link>
-    <router-link to="/formtest">test</router-link>
+    <div class="sticky">
+      <router-link to="/">Home</router-link>
+      <router-link to="/about">About</router-link>
+      <router-link to="/info">Info</router-link>
+      <router-link to="/login">{{loggedIn?"Logout":"Login"}}</router-link>
+      <router-link v-if="loggedIn" to="/devices/">Devices</router-link>
+      <router-link to="/formtest">test</router-link>
+    </div>
   </div>
 </template>
 
@@ -24,8 +26,12 @@ export default class NavBar extends Vue {
 <style scoped>
 #nav {
   width: fit-content;
-  min-height: 100%;
   background-color: #393939;
+}
+
+.sticky {
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
 }
 
 #nav a {
