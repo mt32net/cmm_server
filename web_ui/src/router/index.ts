@@ -29,25 +29,20 @@ const routes: Array<RouteConfig> = [
   },
   {
     path: '/devices',
-    name: 'Device Overview',
-    component: () => import('../views/devices/DevicesHome.vue'),
+    name: 'Device Selection',
+    component: () => import('../views/devices/DeviceSelection.vue'),
     children: [
       {
-        path: '/devices/devicesummary',
-        name: 'Device Module Summary',
-        component: () => import('../views/devices/ModuleInfo.vue')
-      },
-      {
-        path: '/devices/loginRequest',
-        name: 'Device Login Request',
-        component: () => import('../views/devices/DeviceLoginRequest.vue')
-      },
-      {
-        path: '/devices/notifications',
-        name: 'notifications info',
-        component: () => import('../views/devices/NotificationsInfo.vue')
-      },
-    ]
+        path: ':uuid',
+        name: 'Module Selection',
+        component: () => import('../views/devices/ModuleSelection.vue'),
+        children: [
+          {
+            path: ':module',
+            name: 'Module Overview',
+            component: () => import('../views/devices/DeviceModuleInfo.vue')
+          }]
+      }]
   },
   {
     path: "/formtest",

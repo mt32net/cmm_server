@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
+    "styled-components": "^5.2.1",
+    "styled-icons": "^10.25.0",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.3",
     "vue-cookies-ts": "^1.5.19",

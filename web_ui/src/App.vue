@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <NavBar ref="nav" v-bind:loggedIn="loggedIn" />
-    <div ref="content" class="content">
+    <NavBar v-bind:loggedIn="loggedIn" />
+    <div class="content">
       <router-view />
     </div>
   </div>
@@ -23,10 +23,6 @@ export default Vue.extend({
   },
   mounted() {
     this.$nextTick(() => {
-      window.addEventListener("resize", this.updateContentWidth)
-      this.content = this.$refs.content
-      this.navBar = this.$refs.nav
-      this.updateContentWidth()
       this.setSettings()
     })
   },
@@ -40,14 +36,10 @@ export default Vue.extend({
   data(): {
     loggedIn: Boolean,
     cookieData: String,
-    content: Element,
-    navBar: Element
   } {
     return {
       loggedIn: false,
-      cookieData: "",
-      content: this.$refs.content as Element,
-      navBar: this.$refs.nav as Element
+      cookieData: ""
     }
   }
 })
@@ -69,14 +61,13 @@ body {
   height: 100%;
   width: 100%;
   font-size: 1rem;
-
   display: flex;
-}
-
-.content {
-  width: 100%;
 }
 </style>
 
 <style scoped>
+.content {
+  width: 100%;
+  top: 0px;
+}
 </style>
