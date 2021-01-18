@@ -1,5 +1,5 @@
 <template>
-  <router-link :to="moduleURL(module.name)" class="module">
+  <router-link :to="moduleURL(module.name.toLowerCase())" class="module">
     <!--info icon-->
     <svgIcon
       v-if="iconSelector == 0"

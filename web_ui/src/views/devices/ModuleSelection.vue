@@ -1,17 +1,15 @@
 <template>
   <div class="container">
-    <ModuleList />
+    <ModuleList :devices="devices" />
     <div class="content">
-      <router-view />
-      <h1 v-if="$route.params.module == undefined">No module selected</h1>
+      <router-view :devices="devices" />
+      <h1 v-if="devices.length == 0">No devices registered</h1>
+      <h1 v-else-if="$route.params.module == undefined">No module selected</h1>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-// @ is an alias to /src
-//@ts-ignore
-//import NavBarDevices from "@/components/devices/navBarDevices.vue"
 //@ts-ignore
 import ModuleList from '@/components/devices/ModuleList.vue'
 //@ts-ignore
@@ -19,10 +17,13 @@ import { isLoggedIn } from '@/helper/cookieHelper'
 
 
 export default {
-  name: "Device_Overview",
+  name: "Module_Selection",
   components: {
     //NavBarDevices,
     ModuleList
+  },
+  props: {
+    devices: Array
   }
 };
 </script>

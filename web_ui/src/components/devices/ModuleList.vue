@@ -7,6 +7,7 @@
       :key="module.name"
       :module="module"
     />
+    <a v-if="devices.length == 0">Could not load modules</a>
   </div>
 </template>
 
@@ -24,21 +25,24 @@ import ModuleListElement from '@/components/devices/ModuleListElement.vue'
 })
 export default class ModuleList extends Vue {
   error: String = ""
-  devices: Array<any>
-  currentDevice: any = { modules: [] }
 
-  async storeDevice() {
-    this.devices = await getDevices()
+  @Prop({ default: [] })
+  devices: Array<any>
+
+  get currentDevice() {
+    var device = { name: "", modules: [] }
     this.devices.forEach(element => {
       //@ts-ignore
       if (element.deviceUUID == this.$route.params.uuid)
-        this.currentDevice = element
+        device = element
     })
-    this.currentDevice.modules.unshift({ name: "Info", version: "" })
+    if (device.modules.length > 0 && device.modules[0].name != "Info")
+      device.modules.unshift({ name: "Info", version: "" })
+    return device
+
   }
 
   mounted() {
-    this.storeDevice()
   }
 }
 </script>

@@ -40,7 +40,14 @@ const routes: Array<RouteConfig> = [
           {
             path: ':module',
             name: 'Module Overview',
-            component: () => import('../views/devices/DeviceModuleInfo.vue')
+            component: () => import('../views/devices/DeviceModuleInfo.vue'),
+            children: [
+              {
+                path: '/info',
+                name: 'Device Info',
+                component: () => import('../views/devices/ModuleInfos/ModuleInfo_DeviceInfo.vue')
+              }
+            ]
           }]
       }]
   },

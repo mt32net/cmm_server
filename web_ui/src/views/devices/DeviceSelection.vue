@@ -1,8 +1,8 @@
 <template>
   <div class="container">
-    <DeviceList />
+    <DeviceList :devices="devices" />
     <div class="content">
-      <router-view />
+      <router-view :devices="devices" />
       <h1 v-if="$route.params.uuid == undefined">No device selected</h1>
     </div>
   </div>
@@ -18,15 +18,25 @@ import DeviceList from '@/components/devices/DeviceList.vue'
 //@ts-ignore
 import { isLoggedIn } from '@/helper/cookieHelper'
 //@ts-ignore
-import { devices } from '@/helper/deviceHelper'
+import { getDevices } from '@/helper/deviceHelper'
 import axios from 'axios'
 
 
 export default {
-  name: "Device_Overview",
+  name: "Device_Selection",
   components: {
     //NavBarDevices,
     DeviceList
+  },
+  mounted() {
+    getDevices().then(data => this.devices = data)
+  },
+  data(): {
+    devices: Array<any>,
+  } {
+    return {
+      devices: []
+    }
   }
 };
 </script>

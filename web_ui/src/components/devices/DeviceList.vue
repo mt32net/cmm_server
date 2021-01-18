@@ -3,7 +3,7 @@
     <router-link :to="deviceURL(deviceE)" v-for="deviceE in devices" :key="deviceE.deviceUUID">
       <DeviceListElement :device="deviceE" />
     </router-link>
-    <div v-if="devices.lenght == 0">No devices registered</div>
+    <a v-if="devices.length == 0">No devices registered</a>
     <p class="error">{{error}}</p>
   </div>
 </template>
@@ -22,15 +22,20 @@ import { getDevices } from '@/helper/deviceHelper'
 })
 export default class DeviceList extends Vue {
 
-  devices: Array<any> = []
-  error: String = ""
+  @Prop({ default: [] })
+  devices: Array<any>
 
   mounted() {
-    getDevices().then(data => this.devices = data)
   }
 
   deviceURL(device) {
     return "/devices/" + device.deviceUUID
+  }
+
+  get error() {
+    if (this.devices.length == 0)
+      return "No devices"
+    return ""
   }
 }
 </script>
@@ -68,6 +73,7 @@ export default class DeviceList extends Vue {
 
 .error {
   color: red;
+  font-weight: bold;
 }
 
 .content {
