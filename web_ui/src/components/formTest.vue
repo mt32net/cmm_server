@@ -63,9 +63,9 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Options, Vue } from 'vue-class-component'
 
-@Component
+@Options({})
 export default class FormTest extends Vue {
   errors: String[] = []
   weapons = 0

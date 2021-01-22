@@ -1,51 +1,45 @@
 <template>
-  <div ref="relBody">
-    <div ref="spacer"></div>
-    <div ref="loginCompContainer" class="loginCompContainer">
-      <login ref="loginComp" id="loginComp"></login>
+  <div class="container">
+    <div class="loginCompContainer">
+      <login id="loginComp"></login>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 // @ is an alias to /src
+import { Options, Vue } from 'vue-class-component'
 //@ts-ignore
 import Login from '@/components/Login.vue'
+import { nextTick } from 'vue'
 
-var spacer: any
-var login: any
+@Options({
+  components: { Login }
+})
+export default class LoginPage extends Vue {
 
-export default {
-  name: "LoginPage",
-  components: { Login },
-  methods: {
-    updateSpacerHeight() {
-      var windowHeight = window.innerHeight
-      //@ts-ignore
-      var loginHeight = this.login.$el.clientHeight
-      //@ts-ignore
-      this.spacer.style.height = (windowHeight - loginHeight) / 2 + "px"
-    }
-  },
-  mounted() {
-    this.$nextTick(function () {
-      this.spacer = this.$refs.spacer as Element
-      this.login = this.$refs.loginComp as Element
-      window.addEventListener('resize', this.updateSpacerHeight)
-      this.updateSpacerHeight()
-    })
-  },
-  data(): {
-    spacer: any,
-    login: any
-  } {
-    return {
-      spacer: this.$refs.spacer as Element,
-      login: this.$refs.loginComp as Element
-    }
+  updateSpacerHeight() {
   }
-};
+
+  async mounted() {
+  }
+
+}
 </script>
 
 <style scoped>
+.container {
+  width: 100%;
+  height: 100%;
+}
+
+.loginCompContainer {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -ms-transform: translateY(-50%) translateX(50%);
+  transform: translateY(-50%) translateX(-50%);
+  width: fit-content;
+}
 </style>

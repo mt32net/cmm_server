@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator'
+import { Options, Vue } from 'vue-class-component'
 import axios from 'axios'
 //@ts-ignore
 import { getJSONJWT } from '@/helper/cookieHelper'
@@ -25,7 +25,7 @@ enum View {
   requestSent = 1 //request for new device login sent
 }
 
-@Component
+@Options({})
 export default class Requester extends Vue {
 
   viewD: View = View.newDevice

@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <NavBar v-bind:loggedIn="loggedIn" />
+    <NavBar />
     <div class="content">
       <router-view />
     </div>
@@ -8,41 +8,40 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
+import { Options, Vue } from 'vue-class-component'
 //@ts-ignore
 import NavBar from '@/components/navbar.vue'
 //@ts-ignore
 import { getJSONJWT, isLoggedIn } from '@/helper/cookieHelper'
+import { nextTick } from 'vue'
+import router from 'vue-router'
 
-export default Vue.extend({
+@Options({
+  name: "App",
   components: {
     NavBar
   },
+})
+export default class App extends Vue {
+  loggedIn: Boolean = false
+  cookieData: String = ""
+
   updated() {
     this.setSettings()
-  },
-  mounted() {
-    this.$nextTick(() => {
-      this.setSettings()
-    })
-  },
-  methods: {
-    setSettings() {
-      document.title = this.$route.name
-      this.cookieData = getJSONJWT()
-      this.loggedIn = isLoggedIn()
-    }
-  },
-  data(): {
-    loggedIn: Boolean,
-    cookieData: String,
-  } {
-    return {
-      loggedIn: false,
-      cookieData: ""
-    }
   }
-})
+
+  async mounted() {
+    await nextTick()
+    this.setSettings()
+  }
+
+  setSettings() {
+    //@ts-ignore
+    document.title = this.$route.name
+    this.cookieData = getJSONJWT()
+    this.loggedIn = isLoggedIn()
+  }
+}
 </script>
 
 <style>

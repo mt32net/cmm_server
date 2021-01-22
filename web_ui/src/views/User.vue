@@ -1,9 +1,5 @@
 <template>
-  <div>
-    <h1>
-      System running:
-      <b v-bind:class="[runningClass]">{{ runningText }}</b>
-    </h1>
+  <div class="container">
     <pre v-bind:class="[jsonHolderClass]" v-html="jsonPretty"></pre>
   </div>
 </template>
@@ -13,34 +9,18 @@ import { Options, Vue } from 'vue-class-component'
 import axios from 'axios'
 
 @Options({})
-export default class info extends Vue {
+export default class User extends Vue {
+  userString: any = {}
+  jsonPretty = ""
 
-  jsonString: string = ""
-  jsonPretty: string = ""
-  jsonHolderClass: string = ""
-
-  runningClass: string = ""
-  runningText: string = "checking..."
-
-  mounted() {
-    axios.get("/api/info")
-      .then((response) => {
-        this.outputPretty(JSON.stringify(response.data, undefined, 4))
-        this.runningText = "true"
-        this.runningClass = "systemRunning"
-        this.jsonHolderClass = ""
-      })
-      .catch((error) => {
-        this.runningText = "false"
-        this.runningClass = "error"
-        this.jsonPretty = error + " \nUsed url: " + error.response.request.responseURL + "\nCheck Debug Console for more information"
-        this.jsonHolderClass = "error"
-        console.log(error.response.request.responseURL)
-      })
+  async mounted() {
+    var result = await axios.get("/api/user/currentUser")
+    this.userString = result.data
+    this.outputPretty(JSON.stringify(this.userString, undefined, 4))
   }
 
   outputPretty(jsonstring: string) {
-    jsonstring = jsonstring == '' ? this.jsonString : jsonstring;
+    jsonstring = jsonstring == '' ? this.userString : jsonstring;
     // prettify spacing
     var pretty = JSON.stringify(JSON.parse(jsonstring), undefined, 2);
     // syntaxhighlight the pretty print version
@@ -70,10 +50,16 @@ export default class info extends Vue {
       return '<span class="' + cls + '">' + match + '</span>';
     });
   }
+
 }
 </script>
 
 <style>
+.container {
+  overflow: hidden;
+  max-width: 80vw;
+}
+
 textarea {
   width: 90%;
   height: auto;

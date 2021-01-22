@@ -31,23 +31,24 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator'
+import { Options, Vue } from 'vue-class-component'
 //@ts-ignore
 import svgIcon from '@/components/svgIcon.vue'
 
 
 
-@Component({
+@Options({
   name: 'ModuleListElement',
-  components: { svgIcon }
+  components: { svgIcon },
+  props: {
+    module: { name: "", version: "" }
+  }
 })
 export default class DeviceListElement extends Vue {
 
   size = "2rem"
   color = ""
-
-  @Prop({ default: { name: "", version: "" } })
-  module: any
+  module: any = { name: "", version: "" }
 
   moduleURL(module: String) {
     //@ts-ignore

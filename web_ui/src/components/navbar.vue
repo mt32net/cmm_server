@@ -5,19 +5,23 @@
     <router-link to="/info">Info</router-link>
     <router-link to="/login">{{loggedIn?"Logout":"Login"}}</router-link>
     <router-link v-if="loggedIn" to="/devices/">Devices</router-link>
+    <router-link v-if="loggedIn" to="/user/">User</router-link>
     <router-link to="/formtest">test</router-link>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator'
+import { Options, Vue } from 'vue-class-component'
+//@ts-ignore
+import { isLoggedIn } from '@/helper/cookieHelper'
 
-@Component
+@Options({
+  name: "NavBar",
+})
 export default class NavBar extends Vue {
-
-  @Prop({ default: false })
-  loggedIn: Boolean = false
-
+  get loggedIn() {
+    return isLoggedIn()
+  }
 }
 </script>
 

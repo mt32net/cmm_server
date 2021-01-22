@@ -14,8 +14,10 @@
   </svg>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { Options, Vue } from 'vue-class-component'
+
+@Options({
   props: {
     iconName: {
       type: String,
@@ -38,6 +40,13 @@ export default {
       default: '0 0 18 18'
     }
   }
+})
+export default class svgIcon extends Vue {
+  iconName: string = ""
+  width: Number = 18
+  height: Number = 18
+  iconColor: string = "white"
+  viewPort: string = "0 0 18 18"
 }
 </script>
 

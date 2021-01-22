@@ -7,13 +7,15 @@
 </template>
 
 <script lang="ts">
+import { Options, Vue } from 'vue-class-component'
 // @ is an alias to /src
 //@ts-ignore
 import Requester from '@/components/devices/Requester.vue'
 
-export default {
-  name: "DeviceRequest",
+@Options({
   components: { Requester }
+})
+export default class DeviceRequester extends Vue {
 };
 </script>
 

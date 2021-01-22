@@ -5,14 +5,16 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator'
+import { Options, Vue } from 'vue-class-component'
 
-@Component({
-  name: 'DeviceListElement'
+@Options({
+  name: "DeviceListElement",
+  props: {
+    device: { online: false, os: "", osShort: "", modules: [] }
+  }
 })
 export default class DeviceListElement extends Vue {
 
-  @Prop({ default: undefined })
   device: any
 
   get onlineClass() {

@@ -5,8 +5,6 @@
       Online:
       <b :class="onlineClass">{{onlineString}}</b>
     </p>
-    <p>Architecture: {{currentDevice.arch}}</p>
-    <p>Mac-Address: {{currentDevice.mac}}</p>
   </div>
 </template>
 
@@ -16,12 +14,12 @@ import { Options, Vue } from 'vue-class-component'
 import { getDevices } from '@/helper/deviceHelper'
 
 @Options({
-  name: "ModuleInfo_DeviceInfo",
+  name: "ModuleInfo_DeviceNotifications",
   props: {
     currentDevice: { online: false, os: "", osShort: "", modules: [] }
   }
 })
-export default class ModuleInfo_DeviceInfo extends Vue {
+export default class ModuleInfo_DeviceNotifications extends Vue {
 
   currentDevice: any = { online: false, os: "", osShort: "", modules: [] }
 

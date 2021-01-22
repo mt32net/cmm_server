@@ -11,27 +11,26 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator'
+import { Options, Vue } from 'vue-class-component';
 
 enum iconType {
   base64Encoded,
   url
 }
 
-@Component
+@Options({
+  props: {
+    deviceName: String,
+    operatingSystemShort: String,
+    lastUpdated: String,
+    notificationsAvialable: Number
+  }
+})
 export default class DeviceModuleInfo extends Vue {
-
-  @Prop({ default: "NA" })
-  deviceName: String;
-
-  @Prop({ default: "NA" })
-  operatingSystemShort: String;
-
-  @Prop({ default: "now" })
-  lastUpdated: String;
-
-  @Prop({ default: 0 })
-  notificationsAvialable: Number;
+  deviceName: String = ""
+  operatingSystemShort: String = ""
+  lastUpdated: String = ""
+  notificationsAvialable: Number = 0
 }
 </script>
 

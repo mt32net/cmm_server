@@ -12,25 +12,25 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator'
+import { Options, Vue } from 'vue-class-component'
 //@ts-ignore
 import { getDevices } from '@/helper/deviceHelper'
-import styled from 'styled-components'
-import { Notification } from '@styled-icons/boxicons-regular/Notification'
 //@ts-ignore
 import ModuleListElement from '@/components/devices/ModuleListElement.vue'
 
-@Component({
-  components: { ModuleListElement }
+@Options({
+  name: "ModuleList",
+  components: { ModuleListElement },
+  props: {
+    devices: Array
+  }
 })
 export default class ModuleList extends Vue {
   error: String = ""
-
-  @Prop({ default: [] })
-  devices: Array<any>
+  devices: Array<any> = []
 
   get currentDevice() {
-    var device = { name: "", modules: [] }
+    var device = { name: "", modules: [{ name: "", version: "" }] }
     this.devices.forEach(element => {
       //@ts-ignore
       if (element.deviceUUID == this.$route.params.uuid)

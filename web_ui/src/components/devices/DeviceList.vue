@@ -11,24 +11,26 @@
 <script lang="ts">
 //@ts-ignore
 import DeviceListElement from '@/components/devices/DeviceListElement.vue'
-import { Component, Prop, Vue } from 'vue-property-decorator'
+import { Options, Vue } from 'vue-class-component'
 import axios from 'axios'
 //@ts-ignore
 import { getDevices } from '@/helper/deviceHelper'
 
-@Component({
-  name: 'DeviceList',
-  components: { DeviceListElement }
+@Options({
+  name: "DeviceList",
+  components: { DeviceListElement },
+  props: {
+    devices: Array
+  }
 })
 export default class DeviceList extends Vue {
 
-  @Prop({ default: [] })
-  devices: Array<any>
+  devices: Array<any> = []
 
   mounted() {
   }
 
-  deviceURL(device) {
+  deviceURL(device: any) {
     return "/devices/" + device.deviceUUID
   }
 

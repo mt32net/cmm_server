@@ -2,8 +2,8 @@
   <div class="container">
     <DeviceList :devices="devices" />
     <div class="content">
-      <router-view :devices="devices" />
       <h1 v-if="$route.params.uuid == undefined">No device selected</h1>
+      <router-view :devices="devices" v-else />
     </div>
   </div>
 </template>
@@ -12,33 +12,29 @@
 // @ is an alias to /src
 //@ts-ignore
 //import NavBarDevices from "@/components/devices/navBarDevices.vue"
-import { Component, Prop, Vue } from 'vue-property-decorator'
+import { Options, Vue } from 'vue-class-component'
 //@ts-ignore
 import DeviceList from '@/components/devices/DeviceList.vue'
 //@ts-ignore
 import { isLoggedIn } from '@/helper/cookieHelper'
 //@ts-ignore
 import { getDevices } from '@/helper/deviceHelper'
-import axios from 'axios'
 
-
-export default {
-  name: "Device_Selection",
+@Options({
+  name: "DeviceSelection",
   components: {
     //NavBarDevices,
     DeviceList
-  },
-  mounted() {
-    getDevices().then(data => this.devices = data)
-  },
-  data(): {
-    devices: Array<any>,
-  } {
-    return {
-      devices: []
-    }
   }
-};
+})
+export default class DeviceSelection extends Vue {
+  devices: Array<any> = []
+
+  mounted() {
+    getDevices().then(data => this.devices = data as Array<any>)
+  }
+
+}
 </script>
 
 <style scoped>

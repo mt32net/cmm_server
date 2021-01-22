@@ -1,9 +1,6 @@
-import Vue from 'vue'
-import VueRouter, { RouteConfig } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 
-Vue.use(VueRouter)
-
-const routes: Array<RouteConfig> = [
+const routes = [
   {
     path: '/',
     name: 'CMM - Home',
@@ -28,8 +25,14 @@ const routes: Array<RouteConfig> = [
     component: () => import('../components/info.vue')
   },
   {
+    path: '/user',
+    name: 'User info',
+    component: () => import('../views/User.vue')
+  },
+  {
     path: '/devices',
     name: 'Device Selection',
+    props: true,
     component: () => import('../views/devices/DeviceSelection.vue'),
     children: [
       {
@@ -37,19 +40,20 @@ const routes: Array<RouteConfig> = [
         name: 'Module Selection',
         component: () => import('../views/devices/ModuleSelection.vue'),
         children: [
+          //module routes
           {
-            path: ':module',
-            name: 'Module Overview',
-            component: () => import('../views/devices/DeviceModuleInfo.vue'),
-            children: [
-              {
-                path: '/info',
-                name: 'Device Info',
-                component: () => import('../views/devices/ModuleInfos/ModuleInfo_DeviceInfo.vue')
-              }
-            ]
-          }]
-      }]
+            path: 'info',
+            name: 'Device Info',
+            component: () => import('../views/devices/ModuleInfos/ModuleInfo_DeviceInfo.vue')
+          },
+          {
+            path: 'notifications',
+            name: 'Notifications',
+            component: () => import('../views/devices/ModuleInfos/ModuleInfo_DeviceNotifications.vue')
+          }
+        ]
+      }
+    ]
   },
   {
     path: "/formtest",
@@ -58,7 +62,8 @@ const routes: Array<RouteConfig> = [
   }
 ]
 
-const router = new VueRouter({
+const router = createRouter({
+  history: createWebHashHistory(),
   routes
 })
 

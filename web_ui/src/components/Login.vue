@@ -66,10 +66,10 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator'
-import axios from 'axios'
+import { Options, Vue } from 'vue-class-component'
 //@ts-ignore
 import { getJSONJWT, delete_cookie } from '@/helper/cookieHelper'
+import axios from 'axios'
 
 
 enum View {
@@ -83,7 +83,7 @@ enum View {
   signedUp = 8 //successfully signed up
 }
 
-@Component
+@Options({})
 export default class Login extends Vue {
 
   username: String = ""
@@ -185,6 +185,9 @@ export default class Login extends Vue {
       axios.post("/api/user/login", null, { params: { token: token } })
         .then(() => {
           this.viewD = View.signedIn
+          //@ts-ignore
+          window.location = "/login"
+          window.location.reload(true)
         })
         .catch(error => {
           console.error(error)
@@ -195,6 +198,9 @@ export default class Login extends Vue {
 
   logout() {
     delete_cookie("cmmJWT", "/", "")
+    //@ts-ignore
+    window.location = "/login"
+    window.location.reload(true)
   }
 }
 

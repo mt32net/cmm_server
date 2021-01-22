@@ -2,30 +2,36 @@
   <div class="container">
     <ModuleList :devices="devices" />
     <div class="content">
-      <router-view :devices="devices" />
       <h1 v-if="devices.length == 0">No devices registered</h1>
-      <h1 v-else-if="$route.params.module == undefined">No module selected</h1>
+      <h1 v-else-if="$route.path.split('/').pop() == ''">No module selected</h1>
+      <DeviceModuleInfo v-else :devices="devices" />
     </div>
   </div>
 </template>
 
 <script lang="ts">
+import { Options, Vue } from 'vue-class-component'
 //@ts-ignore
 import ModuleList from '@/components/devices/ModuleList.vue'
 //@ts-ignore
+import DeviceModuleInfo from '@/views/devices/DeviceModuleInfo.vue'
+//@ts-ignore
 import { isLoggedIn } from '@/helper/cookieHelper'
 
-
-export default {
-  name: "Module_Selection",
+@Options({
+  name: "ModuleSelection",
   components: {
     //NavBarDevices,
-    ModuleList
+    ModuleList,
+    DeviceModuleInfo
   },
   props: {
     devices: Array
   }
-};
+})
+export default class ModuleSelection extends Vue {
+  devices: Array<any> = []
+}
 </script>
 
 <style scoped>

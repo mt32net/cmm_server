@@ -1,20 +1,25 @@
 <template>
   <div class="container">
     <h1>{{currentDevice.name}}</h1>
-    <h1 class="title">{{selectedModule}}</h1>
-    <router-view :currentDevice="currentDevice" />
+    <h1 class="title">{{moduleName}}</h1>
+    <router-view :currentDevice="currentDevice" :key="devices" />
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator'
+import { Options, Vue } from 'vue-class-component'
 //@ts-ignore
 import { getDevices } from '@/helper/deviceHelper'
 
-@Component
+@Options({
+  name: "DeviceModuleInfo",
+  props: {
+    devices: Array
+  }
+})
 export default class DeviceModuleInfo extends Vue {
-  @Prop({ default: [] })
-  devices: Array<any>
+
+  devices: Array<any> = []
 
   get onlineClass() {
     return (this.currentDevice.online) ? "online" : "offline"
@@ -26,23 +31,26 @@ export default class DeviceModuleInfo extends Vue {
 
   get selectedModule() {
     //@ts-ignore
-    return this.$route.params.module.toLowerCase()
+    return this.$route.path.split('/').pop().toLowerCase()
+  }
+
+  get moduleName() {
+    return this.selectedModule.charAt(0).toUpperCase() + this.selectedModule.slice(1)
   }
 
   get currentDevice() {
-    var device = { modules: [], online: false, name: "Not found", os: "Undefined", osShort: "undef" }
+    var device = { modules: [{ name: "Not found", version: "NaN" }], online: false, name: "Not found", os: "Undefined", osShort: "undef" }
     this.devices.forEach(element => {
       //@ts-ignore
       if (element.deviceUUID == this.$route.params.uuid)
         device = element
     })
-    if (device.modules.length > 0 && device.modules[0].name != "Info")
+    if (device.modules.length > 0 && device.modules[0].name.toLowerCase() != "Info".toLowerCase())
       device.modules.unshift({ name: "Info", version: "" })
     return device
   }
 
   mounted() {
-
   }
 }
 </script>

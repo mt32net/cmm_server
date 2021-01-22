@@ -1,14 +1,10 @@
-import Vue from 'vue'
-import './plugins/axios'
+//import './plugins/axios'
+import { createApp } from 'vue'
+import { Vue } from 'vue-class-component'
 import App from './App.vue'
-import store from './store'
 import router from './router'
-import './plugins/cookie'
 
-Vue.config.productionTip = false
-
-new Vue({
-  store,
-  router,
-  render: h => h(App)
-}).$mount('#app')
+const app = createApp(App)
+app.use(router)
+app.mount('#app')
+app.config.devtools = true
