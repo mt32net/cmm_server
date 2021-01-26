@@ -6,7 +6,8 @@
 
 <script lang="ts">
 import { Options, Vue } from 'vue-class-component'
-import axios from 'axios'
+//@ts-ignore
+import { getCurrentUser } from '@/helper/cmm'
 
 @Options({})
 export default class User extends Vue {
@@ -14,7 +15,7 @@ export default class User extends Vue {
   jsonPretty = ""
 
   async mounted() {
-    var result = await axios.get("/api/user/currentUser")
+    var result = await getCurrentUser()
     this.userString = result.data
     this.outputPretty(JSON.stringify(this.userString, undefined, 4))
   }

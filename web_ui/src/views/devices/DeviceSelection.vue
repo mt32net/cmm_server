@@ -18,7 +18,7 @@ import DeviceList from '@/components/devices/DeviceList.vue'
 //@ts-ignore
 import { isLoggedIn } from '@/helper/cookieHelper'
 //@ts-ignore
-import { getDevices } from '@/helper/deviceHelper'
+import { getDevices } from '@/helper/cmm'
 
 @Options({
   name: "DeviceSelection",

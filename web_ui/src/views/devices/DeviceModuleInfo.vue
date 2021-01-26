@@ -8,8 +8,6 @@
 
 <script lang="ts">
 import { Options, Vue } from 'vue-class-component'
-//@ts-ignore
-import { getDevices } from '@/helper/deviceHelper'
 
 @Options({
   name: "DeviceModuleInfo",

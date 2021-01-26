@@ -3,17 +3,28 @@
     <p>Installed OS: {{currentDevice.os}} ({{currentDevice.osShort}})</p>
     <p>
       Online:
-      <b :class="onlineClass">{{onlineString}}</b>
+      <b :class="boolToClass(currentDevice.online)">{{boolToString(currentDevice.online)}}</b>
+    </p>
+    <p>
+      Verified:
+      <b
+        :class="boolToClass(currentDevice.verified)"
+      >{{boolToString(currentDevice.verified)}}</b>
     </p>
     <p>Architecture: {{currentDevice.arch}}</p>
     <p>Mac-Address: {{currentDevice.mac}}</p>
+    <p>Installed Modules:</p>
+    <ul>
+      <li
+        v-for="module in currentDevice.modules"
+        :key="module.name"
+      >{{module.name}} {{module.version}}</li>
+    </ul>
   </div>
 </template>
 
 <script lang="ts">
 import { Options, Vue } from 'vue-class-component'
-//@ts-ignore
-import { getDevices } from '@/helper/deviceHelper'
 
 @Options({
   name: "ModuleInfo_DeviceInfo",
@@ -25,12 +36,12 @@ export default class ModuleInfo_DeviceInfo extends Vue {
 
   currentDevice: any = { online: false, os: "", osShort: "", modules: [] }
 
-  get onlineClass() {
-    return (this.currentDevice.online) ? "online" : "offline"
+  boolToString(value: Boolean): String {
+    return value ? "yes" : "no"
   }
 
-  get onlineString() {
-    return (this.currentDevice.online) ? "yes" : "no"
+  boolToClass(value: Boolean): String {
+    return value ? "online" : "offline"
   }
 
   get selectedModule() {

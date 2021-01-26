@@ -4,6 +4,7 @@
       <DeviceListElement :device="deviceE" />
     </router-link>
     <a v-if="devices.length == 0">No devices registered</a>
+    <a @click="addDevice" href="/#/devices/">{{addDeviceText}}</a>
     <p class="error">{{error}}</p>
   </div>
 </template>
@@ -14,7 +15,7 @@ import DeviceListElement from '@/components/devices/DeviceListElement.vue'
 import { Options, Vue } from 'vue-class-component'
 import axios from 'axios'
 //@ts-ignore
-import { getDevices } from '@/helper/deviceHelper'
+import { addNewDevice } from '@/helper/cmm'
 
 @Options({
   name: "DeviceList",
@@ -27,6 +28,8 @@ export default class DeviceList extends Vue {
 
   devices: Array<any> = []
 
+  addDeviceText: String = "Add new Device"
+
   mounted() {
   }
 
@@ -38,6 +41,12 @@ export default class DeviceList extends Vue {
     if (this.devices.length == 0)
       return "No devices"
     return ""
+  }
+
+  async addDevice() {
+    this.addDeviceText = "Sending request..."
+    await addNewDevice()
+    this.addDeviceText = "Request sent"
   }
 }
 </script>

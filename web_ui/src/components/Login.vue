@@ -69,6 +69,8 @@
 import { Options, Vue } from 'vue-class-component'
 //@ts-ignore
 import { getJSONJWT, delete_cookie } from '@/helper/cookieHelper'
+//@ts-ignore
+import { registerUser, loginUser, verifyUser, loginUserWithToken, logoutUser } from '@/helper/cmm'
 import axios from 'axios'
 
 
@@ -100,11 +102,7 @@ export default class Login extends Vue {
     e.preventDefault()
     if (this.viewD == View.signInWindow && this.username != "") {
       this.error = ""
-      axios.post("/api/user/login", null, {
-        params: {
-          username: this.username,
-        }
-      })
+      loginUser(this.username)
         .then(() => {
           this.viewD = View.signInRequest
         })
@@ -117,12 +115,7 @@ export default class Login extends Vue {
           console.error(error)
         })
     } else if (this.viewD == View.signUpWindow && this.mail != "" && this.username != "") {
-      axios.post("/api/user/register", null, {
-        params: {
-          username: this.username,
-          mail: this.mail
-        }
-      })
+      registerUser(this.username, this.mail)
         .then(() => {
           this.viewD = View.signedUp
         })
@@ -162,7 +155,7 @@ export default class Login extends Vue {
       this.viewD = View.verifying
       //@ts-ignore
       this.username = this.$route.query.username
-      axios.get("/api/user/verify", { params: { loginSecret: verify } })
+      verifyUser(verify)
         .then(() => {
           this.viewD = View.verified
           var jwt = getJSONJWT()
@@ -182,7 +175,7 @@ export default class Login extends Vue {
     var token = this.$route.query.token
     if (token != undefined) {
       this.viewD = View.verifying
-      axios.post("/api/user/login", null, { params: { token: token } })
+      loginUserWithToken(token)
         .then(() => {
           this.viewD = View.signedIn
           //@ts-ignore
@@ -197,10 +190,7 @@ export default class Login extends Vue {
   }
 
   logout() {
-    delete_cookie("cmmJWT", "/", "")
-    //@ts-ignore
-    window.location = "/login"
-    window.location.reload(true)
+    logoutUser()
   }
 }
 

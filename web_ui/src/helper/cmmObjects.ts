@@ -1,6 +1,4 @@
-import axios from 'axios'
-
-class Device {
+export class Device {
     name: String = ""
     deviceUUID: String = ""
     mac: String = ""
@@ -13,14 +11,15 @@ class Device {
 
 }
 
-class Module {
+export class Module {
     name: String = ""
     version: String = ""
 }
 
-export async function getDevices(): Promise<Array<Device>> {
-    var devices: Array<Device> = []
-    var response = await axios.get("/api/devices/list")
-    devices = response.data.deviceList
-    return devices
+export class User {
+    username: String = ""
+    mail: String = ""
+    uuid: String = ""
+    verified: Boolean = false
+    admin: Boolean = false
 }
